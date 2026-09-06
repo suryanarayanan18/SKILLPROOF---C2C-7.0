@@ -513,6 +513,7 @@
 </div>
 <script src="js/mock_data.js"></script>
 <script src="js/flow.js"></script>
+<script src="js/api.js"></script>
 <script>
   (function() {
     if (window.SkillProofFlow) {
@@ -528,6 +529,64 @@
 
       const protoPill = document.getElementById('eval-proto-pill');
       if (protoPill) protoPill.innerHTML = '<span class="material-symbols-outlined text-[14px] text-primary">terminal</span> Protocol Node: Solved ' + (challenge.protocolNode || '#PY-8821');
+    }
+  })();
+</script>
+<script>
+  (async function() {
+    const assessmentId = window.SkillProofFlow && SkillProofFlow.getAssessmentId();
+    if (!assessmentId || !window.SkillProofApi) return;
+    try {
+      const assessment = await SkillProofApi.getAssessment(assessmentId);
+      const evaluation = assessment.evaluation;
+      if (!evaluation) return;
+      SkillProofFlow.setAssessment(assessment);
+
+      const overallEl = document.querySelector('.font-display-xl');
+      if (overallEl) overallEl.textContent = evaluation.overall_score;
+      const scoreRing = document.querySelector('circle[stroke-dasharray="427.25"]');
+      if (scoreRing) scoreRing.setAttribute('stroke-dashoffset', String(427.25 * (1 - evaluation.overall_score / 100)));
+
+      const dimensions = {
+        'Problem Solving': evaluation.problem_solving,
+        'Correctness': evaluation.correctness,
+        'Code Quality': evaluation.code_quality,
+        'Efficiency': evaluation.efficiency,
+        'Understanding': evaluation.understanding,
+        'Practical Application': evaluation.practical_application,
+      };
+      document.querySelectorAll('span').forEach((label) => {
+        const key = label.textContent.trim();
+        if (!(key in dimensions)) return;
+        const row = label.closest('.flex.flex-col.gap-1');
+        if (!row) return;
+        const value = dimensions[key];
+        const valueEl = row.querySelector('.font-code-sm');
+        const bar = row.querySelector('.h-full');
+        if (valueEl) valueEl.textContent = `${value}%`;
+        if (bar) bar.style.width = `${value}%`;
+      });
+
+      const paragraphs = document.querySelectorAll('p');
+      const executiveSummary = [...paragraphs].find((element) => element.textContent.includes('Execution demonstrated'));
+      if (executiveSummary) executiveSummary.textContent = evaluation.summary;
+      const insight = [...document.querySelectorAll('blockquote')][0];
+      if (insight) insight.textContent = evaluation.feedback;
+
+      const strengthsHeading = [...document.querySelectorAll('h3')].find((element) => element.textContent.trim() === 'What you did well');
+      const weaknessesHeading = [...document.querySelectorAll('h3')].find((element) => element.textContent.trim() === 'What to improve');
+      function populateList(heading, items) {
+        const list = heading && heading.closest('section')?.querySelector('ul');
+        if (!list) return;
+        list.innerHTML = items.map((item) => `<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container"><span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span><div class="flex flex-col"><span class="font-title-md text-title-md text-on-surface font-semibold">${item}</span></div></li>`).join('');
+      }
+      populateList(strengthsHeading, evaluation.strengths);
+      populateList(weaknessesHeading, evaluation.weaknesses);
+
+      const nextStep = [...document.querySelectorAll('p')].find((element) => element.textContent.includes('Designed around the areas'));
+      if (nextStep) nextStep.textContent = evaluation.recommended_next_step;
+    } catch (error) {
+      console.error('Unable to load evaluation:', error);
     }
   })();
 </script>

@@ -464,24 +464,30 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
 
   <script src="js/mock_data.js"></script>
   <script src="js/flow.js"></script>
+  <script src="js/api.js"></script>
   <script>
     let activeChallenge = null;
 
-    // Load active challenge into workspace
-    document.addEventListener("DOMContentLoaded", () => {
+    // Load the generated challenge into the existing workspace.
+    document.addEventListener("DOMContentLoaded", async () => {
       if (window.SkillProofFlow) {
-        activeChallenge = SkillProofFlow.getActiveChallenge();
+        activeChallenge = SkillProofFlow.getStoredAssessment();
+        if (!activeChallenge && SkillProofFlow.getAssessmentId()) {
+          activeChallenge = await SkillProofApi.getAssessment(SkillProofFlow.getAssessmentId());
+          SkillProofFlow.setAssessment(activeChallenge);
+        }
+        activeChallenge = activeChallenge || SkillProofFlow.getActiveChallenge();
         const skillKey = SkillProofFlow.getSkill();
         const diffKey = SkillProofFlow.getDifficulty();
 
         const topSkillEl = document.getElementById('top-skill-badge');
-        if (topSkillEl) topSkillEl.textContent = activeChallenge.title ? `${skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}` : skillKey;
+        if (topSkillEl) topSkillEl.textContent = activeChallenge.skill || skillKey;
 
         const topDiffEl = document.getElementById('top-diff-badge');
         if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || diffKey;
 
         const protoEl = document.getElementById('challenge-protocol');
-        if (protoEl && activeChallenge.protocolNode) protoEl.textContent = 'Attestation Protocol ' + activeChallenge.protocolNode;
+        if (protoEl) protoEl.textContent = 'Attestation Protocol #' + (activeChallenge.challenge_id || 'LIVE').slice(-8);
 
         const titleEl = document.getElementById('challenge-title');
         if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
@@ -493,7 +499,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
         const savedCode = SkillProofFlow.getSolutionCode();
         const editorEl = document.getElementById('code-input');
         if (editorEl) {
-          editorEl.value = savedCode || activeChallenge.starterCode || editorEl.value;
+          editorEl.value = savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
         }
       }
     });
@@ -511,48 +517,33 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       }
     }
 
-    // Finish evaluation and redirect
-    function finishEvaluation() {
-      if (evalInterval) clearInterval(evalInterval);
-      const editorEl = document.getElementById('code-input');
-      if (editorEl && window.SkillProofFlow) {
-        SkillProofFlow.setSolutionCode(editorEl.value);
-      }
-      window.location.href = 'evaluation.html';
-    }
-
-    // Interactive Submission Simulation Flow
+    // Submit the edited solution to Gemini through the API.
     let evalInterval;
-    function startSubmissionEvaluation() {
+    async function startSubmissionEvaluation() {
       const overlay = document.getElementById('eval-overlay');
       const progressBar = document.getElementById('eval-progress-bar');
+      const editorEl = document.getElementById('code-input');
+      const assessmentId = SkillProofFlow.getAssessmentId();
+      if (!assessmentId || !editorEl) {
+        window.alert('Start a generated challenge before submitting a solution.');
+        return;
+      }
       overlay.classList.remove('hidden');
-
-      let stage = 0;
-      progressBar.style.width = '35%';
-
-      evalInterval = setInterval(() => {
-        stage++;
-        if (stage === 1) {
-          progressBar.style.width = '65%';
-          document.getElementById('seq-step-3').innerHTML = '<span class="flex items-center gap-2 text-[#6FA879]"><span>✓</span> Evaluating code quality</span><span class="text-[11px] text-[#8D8789]">PEP-8 Strict</span>';
-          document.getElementById('seq-step-4').innerHTML = '<span class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 rounded-full bg-[#D47A68] animate-ping"></span> Analyzing efficiency</span><span class="text-[11px] text-[#D9A0AA]">O(N log K) Verified</span>';
-          document.getElementById('seq-step-4').className = 'flex items-center justify-between text-white';
-        } else if (stage === 2) {
-          progressBar.style.width = '90%';
-          document.getElementById('seq-step-4').innerHTML = '<span class="flex items-center gap-2 text-[#6FA879]"><span>✓</span> Analyzing efficiency</span><span class="text-[11px] text-[#8D8789]">O(N log K) Verified</span>';
-          document.getElementById('seq-step-5').innerHTML = '<span class="flex items-center gap-2 text-white"><span class="w-1.5 h-1.5 rounded-full bg-[#B86A73] animate-ping"></span> Identifying improvement areas</span><span class="text-[11px] text-[#D9A0AA]">Synthesizing feedback</span>';
-          document.getElementById('seq-step-5').className = 'flex items-center justify-between text-white';
-        } else if (stage === 3) {
-          progressBar.style.width = '100%';
-          document.getElementById('seq-step-5').innerHTML = '<span class="flex items-center gap-2 text-[#6FA879]"><span>✓</span> Identifying improvement areas</span><span class="text-[11px] text-[#8D8789]">Complete</span>';
-          clearInterval(evalInterval);
-          // Automatic transition to Evaluation Report
-          setTimeout(() => {
-            finishEvaluation();
-          }, 800);
-        }
-      }, 1000);
+      progressBar.style.width = '45%';
+      SkillProofFlow.setSolutionCode(editorEl.value);
+      const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
+      try {
+        const assessment = await SkillProofApi.submitSolution(assessmentId, {
+          solution: editorEl.value,
+          timeElapsedSeconds: Math.max(0, Math.round((Date.now() - startedAt) / 1000)),
+        });
+        progressBar.style.width = '100%';
+        SkillProofFlow.setAssessment(assessment);
+        window.location.href = 'evaluation.html';
+      } catch (error) {
+        overlay.classList.add('hidden');
+        window.alert(error.message);
+      }
     }
 
     function cancelSubmission() {
@@ -572,8 +563,8 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
     }
 
     function resetTemplate() {
-      if (activeChallenge && activeChallenge.starterCode) {
-        document.getElementById('code-input').value = activeChallenge.starterCode;
+      if (activeChallenge && (activeChallenge.starter_code || activeChallenge.starterCode)) {
+        document.getElementById('code-input').value = activeChallenge.starter_code || activeChallenge.starterCode;
       } else {
         const defaultCode = `from typing import List, Dict, Any\nfrom collections import defaultdict\n\ndef aggregate_payload_stream(events: List[Dict[str, Any]]) -> Dict[str, Any]:\n    valid_buckets = defaultdict(list)\n    malformed_count = 0\n    for record in events:\n        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:\n            malformed_count += 1\n            continue\n        ts = record["timestamp"]\n        bucket_key = str(ts - (ts % 60))\n        valid_buckets[bucket_key].append(record)\n    return {"status": "success", "partitions": dict(valid_buckets), "malformed_dropped": malformed_count}\n`;
         document.getElementById('code-input').value = defaultCode;
@@ -599,5 +590,6 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       const el = document.getElementById('session-timer');
       if (el) el.textContent = `${mStr}:${sStr}`;
     }, 1000);
+    sessionStorage.setItem('skillproof_started_at', sessionStorage.getItem('skillproof_started_at') || Date.now());
   </script>
 </body></html>

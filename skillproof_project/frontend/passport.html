@@ -400,6 +400,22 @@
   }
 
   // Toast feedback on Share Passport
+<script>
+  (async function() {
+    if (!window.SkillProofApi) return;
+    try {
+      const passport = await SkillProofApi.getPassport();
+      const score = document.querySelector('.font-display-xl');
+      if (score) score.textContent = passport.overall_score;
+      const skillLabel = [...document.querySelectorAll('span')].find((element) => element.textContent.includes('Python · Intermediate Level'));
+      if (skillLabel) skillLabel.textContent = `${passport.skill} · ${passport.difficulty}`;
+      const summary = [...document.querySelectorAll('p')].find((element) => element.textContent.includes('Your Skill Passport summarizes'));
+      if (summary) summary.textContent = passport.summary;
+    } catch (error) {
+      console.info('No completed passport is available yet.');
+    }
+  })();
+</script>
   const shareBtn = document.getElementById('share-trigger');
   if (shareBtn) {
     shareBtn.addEventListener('click', () => {

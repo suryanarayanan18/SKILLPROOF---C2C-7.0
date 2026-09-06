@@ -18,6 +18,20 @@ const SkillProofFlow = {
   setDifficulty(diffKey) {
     localStorage.setItem("skillproof_selected_difficulty", diffKey);
   },
+  getAssessmentId() {
+    return localStorage.getItem("skillproof_assessment_id") || null;
+  },
+  setAssessment(assessment) {
+    localStorage.setItem("skillproof_assessment_id", assessment.assessment_id);
+    localStorage.setItem("skillproof_active_assessment", JSON.stringify(assessment));
+  },
+  getStoredAssessment() {
+    try {
+      return JSON.parse(localStorage.getItem("skillproof_active_assessment") || "null");
+    } catch (error) {
+      return null;
+    }
+  },
   getSolutionCode() {
     return localStorage.getItem("skillproof_solution_code") || null;
   },
@@ -37,6 +51,8 @@ const SkillProofFlow = {
     localStorage.removeItem("skillproof_selected_skill");
     localStorage.removeItem("skillproof_selected_difficulty");
     localStorage.removeItem("skillproof_solution_code");
+    localStorage.removeItem("skillproof_assessment_id");
+    localStorage.removeItem("skillproof_active_assessment");
   }
 };
 

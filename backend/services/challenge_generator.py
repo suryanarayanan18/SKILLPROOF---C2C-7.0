@@ -67,34 +67,10 @@ For a Python challenge, include:
 
 Do NOT provide the solution.
 
-Return the challenge in this structure:
-
-TITLE:
-<challenge title>
-
-DIFFICULTY:
-<difficulty>
-
-PROBLEM:
-<problem description>
-
-TASK:
-<what the user must do>
-
-INPUT:
-<input description>
-
-OUTPUT:
-<output description>
-
-CONSTRAINTS:
-<constraints>
-
-EXAMPLE:
-<example>
-
-SKILLS_TESTED:
-<skills being tested>
+Return ONLY a JSON object. Its fields must be:
+title (string), overview (string), task (string), constraints (array of strings),
+starter_code (string), and examples (array of objects with input and output strings).
+Do not wrap the JSON in Markdown or include a solution.
 """
 
     return generate_text(prompt)

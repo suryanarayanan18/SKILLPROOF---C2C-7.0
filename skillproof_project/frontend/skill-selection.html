@@ -218,6 +218,9 @@
 </div>
 </div>
 <!-- Interactive Selection Logic -->
+<script src="js/mock_data.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/api.js"></script>
 <script>
     (function() {
       const cards = document.querySelectorAll('.skill-card');
@@ -276,6 +279,7 @@
           const skillTitle = card.querySelector('h2').textContent.trim();
           if (summaryText && skillDescriptions[skillKey]) {
             summaryText.innerHTML = `Selected: <strong class="text-on-surface font-semibold">${skillTitle}</strong>. Calibrate challenge parameters on the next screen.`;
+          }
           if (window.SkillProofFlow) {
             SkillProofFlow.setSkill(skillKey);
           }
@@ -293,6 +297,4 @@
       }
     })();
   </script>
-  <script src="js/mock_data.js"></script>
-  <script src="js/flow.js"></script>
 </div></div></main></div></body></html>
