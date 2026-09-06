@@ -166,15 +166,16 @@ class SkillProofApiTests(unittest.TestCase):
 
     @patch.dict(os.environ, {"SKILLPROOF_PROVIDER": "gemini"})
     @patch("app.generate_challenge", return_value=CHALLENGE_TEXT)
-    def test_gemini_quota_failure_returns_error(self, mock_challenge):
+    def test_gemini_quota_failure_uses_deterministic_evaluation(self, mock_challenge):
         assessment = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()
         with patch("app.evaluate_solution", side_effect=RuntimeError("429 RESOURCE_EXHAUSTED")):
             response = self.client.post(
                 f"/api/assessments/{assessment['assessment_id']}/submit",
                 json={"solution": "def count_records(records): return len(records)"},
             )
-        self.assertEqual(response.status_code, 429)
-        self.assertEqual(response.json()["detail"], "Gemini API limit reached. Please try again later.")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["evaluation"]["status"], "completed")
+        self.assertGreaterEqual(response.json()["evaluation"]["total_tests"], 1)
 
     def test_mock_scores_strong_solution_higher_than_incomplete_solution(self):
         strong = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()

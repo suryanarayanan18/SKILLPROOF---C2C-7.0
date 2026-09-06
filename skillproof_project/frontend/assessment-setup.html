@@ -328,7 +328,7 @@
           btn.classList.add('pointer-events-none', 'opacity-80');
           try {
             const assessment = await SkillProofApi.createAssessment({
-              skill: SkillProofFlow.getSkill(),
+              skill: SkillProofFlow.getApiSkill(),
               difficulty: SkillProofFlow.getDifficulty(),
             });
             SkillProofFlow.setAssessment(assessment);
@@ -336,7 +336,7 @@
           } catch (error) {
             btn.classList.remove('pointer-events-none', 'opacity-80');
             btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">play_arrow</span><span>Begin Challenge</span>';
-            window.alert(error?.message || String(error));
+            window.alert(SkillProofApi.formatError(error));
           }
         });
       }

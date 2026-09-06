@@ -57,6 +57,14 @@ class EvaluationResponse(BaseModel):
     weaknesses: list[str]
     feedback: str
     recommended_next_step: str
+    status: Literal["completed"] = "completed"
+    passed_tests: int = Field(default=0, ge=0)
+    total_tests: int = Field(default=0, ge=0)
+    failed_tests: int = Field(default=0, ge=0)
+    competency: str = "Developing"
+    improvements: list[str] = Field(default_factory=list)
+    next_difficulty: Difficulty | None = None
+    test_results: list[dict[str, str]] = Field(default_factory=list)
 
 
 class AssessmentResponse(ChallengeResponse):

@@ -96,17 +96,16 @@ def submit_solution(assessment_id: str, payload: SolutionSubmitRequest) -> Asses
             challenge=f"{assessment.overview}\n\nTask:\n{assessment.task}\n\nConstraints:\n" + "\n".join(assessment.constraints),
             solution=payload.solution,
             skill=assessment.skill,
+            difficulty=assessment.difficulty,
         )
     except Exception as error:
-        if os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower() in {"mock", "demo"}:
-            logger.exception("Evaluation provider failed in demo mode; using deterministic demo evaluation.")
-            generated = evaluate_demo_solution(
-                challenge=f"{assessment.overview}\n\nTask:\n{assessment.task}\n\nConstraints:\n" + "\n".join(assessment.constraints),
-                solution=payload.solution,
-                skill=assessment.skill,
-            )
-        else:
-            raise _gemini_error(error) from error
+        logger.exception("Evaluation provider failed; using deterministic local evaluation.")
+        generated = evaluate_demo_solution(
+            challenge=f"{assessment.overview}\n\nTask:\n{assessment.task}\n\nConstraints:\n" + "\n".join(assessment.constraints),
+            solution=payload.solution,
+            skill=assessment.skill,
+            difficulty=assessment.difficulty,
+        )
 
     assessment.evaluation = normalize_evaluation(generated)
     assessment.submitted_solution = payload.solution

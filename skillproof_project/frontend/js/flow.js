@@ -9,6 +9,9 @@ const SkillProofFlow = {
   getSkill() {
     return localStorage.getItem("skillproof_selected_skill") || "python";
   },
+  getApiSkill() {
+    return "Python";
+  },
   setSkill(skillKey) {
     localStorage.setItem("skillproof_selected_skill", skillKey);
   },

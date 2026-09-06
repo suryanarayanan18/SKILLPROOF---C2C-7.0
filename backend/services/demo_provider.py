@@ -1,9 +1,15 @@
-"""Deterministic provider used for local demos when Gemini is unavailable."""
+"""Deterministic local provider for the Review 1 demo.
+
+This provider never calls an external service. It executes the submitted code
+against fixed, challenge-specific fixtures and returns the normal evaluator
+contract used by the Stitch results page.
+"""
 
 from __future__ import annotations
 
 import json
 import re
+from typing import Any, Callable
 
 
 DEMO_CHALLENGES = {
@@ -35,59 +41,93 @@ DEMO_CHALLENGES = {
 
 
 def generate_challenge(*, skill: str, difficulty: str, **_: object) -> str:
-    """Return a realistic, difficulty-specific challenge without network access."""
-    challenge = dict(DEMO_CHALLENGES.get(difficulty, DEMO_CHALLENGES["intermediate"]))
+    challenge = dict(DEMO_CHALLENGES.get(difficulty, DEMO_CHALLENGES["beginner"]))
     challenge["skill"] = skill
     challenge["difficulty"] = difficulty
     return json.dumps(challenge)
 
 
-def evaluate_solution(*, challenge: str, solution: str, **_: object) -> str:
-    """Score recognizable implementation choices without executing submitted code."""
-    source = solution.lower()
-    checks = {
-        "function": bool(re.search(r"\b(process_cart|aggregate_payload_stream|acquire)\s*\(", source)),
-        "iteration": any(token in source for token in ("for item in", "for record in", "for product in")),
-        "quantity_filter": any(token in source for token in ("quantity <= 0", "quantity > 0", "if not quantity", "if quantity")),
-        "category_discount": "category" in source and "discount" in source,
-        "subtotal": "subtotal" in source and ("price" in source or "total" in source),
-        "store_discount": "threshold" in source or "0.1" in source or "10%" in source,
-        "non_negative": "max(0" in source or "max(0," in source or "never negative" in source,
-        "structured_return": "return {" in source or "return{" in source,
-    }
-    completed = sum(checks.values())
-    correctness = min(100, 45 + completed * 7)
-    problem_solving = min(100, 50 + completed * 6)
-    code_quality = min(100, 55 + (10 if "def " in source else 0) + (10 if "round(" in source else 0) + completed * 3)
-    efficiency = min(100, 60 + (15 if checks["iteration"] else 0) + (10 if "sum(" in source else 0) + completed * 2)
-    understanding = min(100, 48 + completed * 6)
-    practical_application = min(100, 50 + completed * 6)
-    overall = round((correctness + problem_solving + code_quality + efficiency + understanding + practical_application) / 6)
-    strengths = ["Clear function structure and readable Python." if checks["function"] else "The submission contains a Python implementation."]
-    if checks["iteration"]:
-        strengths.append("Uses iteration to process assessment data.")
-    if checks["category_discount"]:
-        strengths.append("Accounts for category-specific discount logic.")
-    weaknesses = []
-    if not checks["quantity_filter"]:
-        weaknesses.append("Add explicit filtering for invalid quantities or records.")
-    if not checks["store_discount"]:
-        weaknesses.append("Implement the threshold or refill rule described by the challenge.")
-    if not checks["non_negative"]:
-        weaknesses.append("Guard shared or final values so they cannot become negative.")
-    if not weaknesses:
-        weaknesses.append("Add more edge-case tests for unusual inputs.")
+def _run_solution(solution: str, function_name: str, cases: list[tuple[str, Callable[[dict[str, Any]], bool]]]) -> list[dict[str, str]]:
+    namespace: dict[str, Any] = {}
+    try:
+        exec(compile(solution, "<submitted-solution>", "exec"), namespace)
+        function = namespace.get(function_name)
+        if not callable(function):
+            raise ValueError(f"Define {function_name} before submitting.")
+    except Exception as error:
+        return [{"name": name, "status": "FAIL", "detail": f"Could not load solution: {error}"} for name, _ in cases]
+
+    results = []
+    for name, check in cases:
+        try:
+            passed = check({"function": function})
+            results.append({"name": name, "status": "PASS" if passed else "FAIL", "detail": "Assertions matched." if passed else "Output differed from the expected result."})
+        except Exception as error:
+            results.append({"name": name, "status": "FAIL", "detail": f"Raised {type(error).__name__}: {error}"})
+    return results
+
+
+def _cases_for(difficulty: str) -> tuple[str, list[tuple[str, Callable[[dict[str, Any]], bool]]]]:
+    if difficulty == "beginner":
+        def run(function: Any, items: list[dict[str, Any]], discounts: dict[str, float], threshold: float = 100) -> dict[str, Any]:
+            return function(items, discounts, threshold)
+
+        return "process_cart", [
+            ("single category", lambda ctx: run(ctx["function"], [{"price": 25, "quantity": 2, "category": "books"}], {}) == {"subtotal": 50.0, "total_quantity": 2, "discount": 0.0, "tax": 4.0, "total": 54.0}),
+            ("category discount", lambda ctx: run(ctx["function"], [{"price": 50, "quantity": 3, "category": "books"}], {"books": 10}, 100) == {"subtotal": 135.0, "total_quantity": 3, "discount": 13.5, "tax": 9.72, "total": 131.22}),
+            ("invalid quantity", lambda ctx: run(ctx["function"], [{"price": 25, "quantity": 0, "category": "books"}], {})["total_quantity"] == 0),
+            ("threshold boundary", lambda ctx: run(ctx["function"], [{"price": 100, "quantity": 1, "category": "other"}], {})["discount"] == 0.0),
+            ("empty cart", lambda ctx: run(ctx["function"], [], {})["total"] == 0.0),
+        ]
+    if difficulty == "intermediate":
+        def check(function: Any, events: list[dict[str, Any]], expected: dict[str, Any]) -> bool:
+            result = function(events, 60)
+            return result == expected
+
+        return "aggregate_payload_stream", [
+            ("temporal buckets", lambda ctx: check(ctx["function"], [{"timestamp": 121, "payload": "cpu"}, {"timestamp": 181, "payload": "mem"}, {"raw": "bad"}], {"partitions": {"120": [{"timestamp": 121, "payload": "cpu"}], "180": [{"timestamp": 181, "payload": "mem"}]}, "malformed_dropped": 1, "total_payloads": 2})),
+            ("preserve bucket order", lambda ctx: check(ctx["function"], [{"timestamp": 125, "payload": "first"}, {"timestamp": 121, "payload": "second"}, {"raw": "bad"}], {"partitions": {"120": [{"timestamp": 125, "payload": "first"}, {"timestamp": 121, "payload": "second"}]}, "malformed_dropped": 1, "total_payloads": 2})),
+            ("empty input", lambda ctx: ctx["function"]([], 60) == {"partitions": {}, "malformed_dropped": 0, "total_payloads": 0}),
+        ]
+    return "TokenBucketLimiter", [
+        ("class exists", lambda ctx: callable(ctx["function"])),
+    ]
+
+
+def evaluate_solution(*, challenge: str, solution: str, skill: str = "Python", difficulty: str | None = None, **_: object) -> str:
+    data = json.loads(challenge) if challenge.strip().startswith("{") else {}
+    selected_difficulty = difficulty or str(data.get("difficulty", "beginner"))
+    function_name, cases = _cases_for(selected_difficulty)
+    results = _run_solution(solution, function_name, cases)
+    passed = sum(result["status"] == "PASS" for result in results)
+    total = len(results)
+    score = round(45 + (passed / total) * 55) if total else 0
+    competency = "Excellent" if score >= 90 else "Strong" if score >= 75 else "Developing"
+    strengths = [f"Passed {passed} of {total} deterministic test cases."]
+    if passed == total:
+        strengths.append("Handles the supplied edge cases and expected output contract.")
+    improvements = [result["name"] for result in results if result["status"] != "PASS"]
+    if not improvements:
+        improvements = ["Add additional tests for inputs outside the supplied fixtures."]
     return json.dumps({
-        "overall_score": overall,
-        "correctness": correctness,
-        "problem_solving": problem_solving,
-        "code_quality": code_quality,
-        "efficiency": efficiency,
-        "understanding": understanding,
-        "practical_application": practical_application,
-        "summary": f"Demo evaluation identified {completed} of {len(checks)} expected implementation signals.",
+        "overall_score": score,
+        "correctness": score,
+        "problem_solving": min(100, score + 2),
+        "code_quality": min(100, score + (5 if "def " in solution and "return" in solution else 0)),
+        "efficiency": min(100, score + 1),
+        "understanding": score,
+        "practical_application": score,
+        "summary": f"Deterministic Review 1 completed with {passed}/{total} tests passing.",
         "strengths": strengths,
-        "weaknesses": weaknesses,
-        "feedback": "This is a deterministic source review for the local demo; submitted code was not executed in a sandbox.",
-        "recommended_next_step": "Add focused tests for edge cases and boundary behavior before resubmitting.",
+        "weaknesses": improvements,
+        "improvements": improvements,
+        "feedback": "The submitted Python was executed locally against fixed Review 1 fixtures; no AI service was used.",
+        "recommended_next_step": "Review the failed cases and add focused boundary tests before attempting the next difficulty.",
+        "status": "completed",
+        "passed_tests": passed,
+        "total_tests": total,
+        "failed_tests": total - passed,
+        "competency": competency,
+        "next_difficulty": "intermediate" if selected_difficulty == "beginner" else "advanced" if selected_difficulty == "intermediate" else "advanced",
+        "test_results": results,
     })

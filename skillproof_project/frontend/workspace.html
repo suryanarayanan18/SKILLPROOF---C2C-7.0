@@ -479,6 +479,18 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
           SkillProofFlow.setAssessment(activeChallenge);
         }
         activeChallenge = activeChallenge || SkillProofFlow.getActiveChallenge();
+        if (!SkillProofFlow.getAssessmentId()) {
+          const demoAssessment = {
+            ...SkillProofFlow.getDemoChallenge(),
+            assessment_id: `demo-${Date.now()}`,
+            challenge_id: `demo-${Date.now()}`,
+            evaluation: null,
+            submitted_solution: null,
+            time_elapsed_seconds: null,
+          };
+          activeChallenge = demoAssessment;
+          SkillProofFlow.setAssessment(demoAssessment);
+        }
         const skillKey = SkillProofFlow.getSkill();
         const diffKey = SkillProofFlow.getDifficulty();
 
@@ -537,7 +549,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       const editorEl = document.getElementById('code-input');
       const assessmentId = SkillProofFlow.getAssessmentId();
       if (!assessmentId || !editorEl) {
-        window.alert('Start a challenge before submitting a solution.');
+        showSubmissionError('Start a challenge before submitting a solution.');
         return;
       }
       overlay.classList.remove('hidden');
@@ -554,7 +566,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
         window.location.href = 'evaluation.html';
       } catch (error) {
         overlay.classList.add('hidden');
-        showSubmissionError(error?.message || String(error));
+        showSubmissionError(SkillProofApi.formatError(error));
       }
     }
 

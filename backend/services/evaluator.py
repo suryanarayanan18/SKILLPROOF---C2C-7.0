@@ -9,6 +9,7 @@ def evaluate_solution(
     challenge: str,
     solution: str,
     skill: str = "Python",
+    difficulty: str | None = None,
 ) -> str:
     """
     Evaluate a candidate's solution against a generated challenge.
@@ -25,7 +26,7 @@ def evaluate_solution(
     if os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower() in {"mock", "demo"}:
         from services.demo_provider import evaluate_solution as evaluate_demo_solution
 
-        return evaluate_demo_solution(challenge=challenge, solution=solution, skill=skill)
+        return evaluate_demo_solution(challenge=challenge, solution=solution, skill=skill, difficulty=difficulty)
 
     prompt = f"""
 You are the SkillProof AI Evaluator.

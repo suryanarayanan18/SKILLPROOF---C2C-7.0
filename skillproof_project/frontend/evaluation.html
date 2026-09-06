@@ -56,7 +56,7 @@
 <circle class="transition-all duration-1000 ease-out" cx="80" cy="80" fill="none" r="68" stroke="url(#scoreProgressGrad)" stroke-dasharray="427.25" stroke-dashoffset="76.9" stroke-linecap="round" stroke-width="10"></circle>
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-<span class="font-display-xl text-display-xl leading-none font-bold text-on-surface tracking-tighter">82</span>
+<span id="result-score" class="font-display-xl text-display-xl leading-none font-bold text-on-surface tracking-tighter">82</span>
 <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mt-1">/ 100 PTS</span>
 </div>
 </div>
@@ -73,10 +73,10 @@
 <div class="flex flex-col gap-space-2xs">
 <div class="flex items-center gap-space-xs">
 <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
-<span class="font-label-md text-label-md uppercase tracking-wider text-primary">Verdict Certified</span>
+<span id="result-competency" class="font-label-md text-label-md uppercase tracking-wider text-primary">Verdict Certified</span>
 </div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Strong practical performance</h2>
-<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+<h2 id="result-verdict" class="font-headline-md text-headline-md text-on-surface">Strong practical performance</h2>
+<p id="result-summary" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
               Execution demonstrated production-grade determinism with an exceptional O(N log K) algorithmic baseline. Candidate exhibits mastery over structured Python generator constructs, memory isolation, and safe type casting under constrained buffer allocations.
             </p>
 </div>
@@ -287,7 +287,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant">Empirically confirmed capabilities</span>
 </div>
 </div>
-<ul class="flex flex-col gap-space-sm mt-space-xs">
+<ul id="result-strengths" class="flex flex-col gap-space-sm mt-space-xs">
 <li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
 <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span>
 <div class="flex flex-col">
@@ -322,7 +322,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant">Actionable algorithmic optimizations</span>
 </div>
 </div>
-<ul class="flex flex-col gap-space-sm mt-space-xs">
+<ul id="result-improvements" class="flex flex-col gap-space-sm mt-space-xs">
 <li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
 <span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">change_circle</span>
 <div class="flex flex-col">
@@ -347,6 +347,17 @@
 </ul>
 </section>
 </div>
+<!-- Deterministic Review 1 test trace -->
+<section class="flex flex-col rounded-2xl bg-surface-container-low p-space-xl shadow-lg gap-space-md">
+<div class="flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[18px]">fact_check</span></div>
+<div><h3 class="font-headline-sm text-headline-sm text-on-surface">Review 1 Test Results</h3><span id="result-test-summary" class="font-label-sm text-label-sm text-on-surface-variant">Deterministic local test harness</span></div>
+</div>
+<span id="result-next-difficulty" class="font-code-sm text-code-sm px-space-sm py-1 rounded-full bg-surface-container text-secondary">Next: Intermediate</span>
+</div>
+<div id="result-test-results" class="grid grid-cols-1 md:grid-cols-2 gap-space-sm"></div>
+</section>
 <!-- Section 5: Attempt History Line Chart -->
 <section class="flex flex-col rounded-2xl bg-surface-container-low p-space-xl shadow-lg gap-space-lg">
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
@@ -541,8 +552,12 @@
       const evaluation = assessment.evaluation;
       if (!evaluation) return;
       SkillProofFlow.setAssessment(assessment);
-      const score = document.querySelector('.font-display-xl');
+      const score = document.getElementById('result-score');
       if (score) score.textContent = evaluation.overall_score;
+      const competency = document.getElementById('result-competency');
+      const verdict = document.getElementById('result-verdict');
+      if (competency) competency.textContent = `${evaluation.competency || 'Completed'} Review 1`;
+      if (verdict) verdict.textContent = `${evaluation.competency || 'Completed'} practical performance`;
       const dimensions = {
         'Problem Solving': evaluation.problem_solving,
         'Correctness': evaluation.correctness,
@@ -560,10 +575,46 @@
         if (valueEl) valueEl.textContent = `${value}%`;
         if (bar) bar.style.width = `${value}%`;
       });
-      const summary = [...document.querySelectorAll('p')].find((item) => item.textContent.includes('Execution demonstrated'));
+      const summary = document.getElementById('result-summary');
       if (summary) summary.textContent = evaluation.summary;
       const insight = document.querySelector('blockquote');
       if (insight) insight.textContent = evaluation.feedback;
+      const renderItems = (element, items, icon, colorClass) => {
+        if (!element || !items?.length) return;
+        element.replaceChildren(...items.map((item) => {
+          const row = document.createElement('li');
+          row.className = 'flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container';
+          const iconEl = document.createElement('span');
+          iconEl.className = `material-symbols-outlined ${colorClass} text-[20px] mt-0.5`;
+          iconEl.textContent = icon;
+          const text = document.createElement('span');
+          text.className = 'font-body-sm text-body-sm text-on-surface-variant';
+          text.textContent = item;
+          row.append(iconEl, text);
+          return row;
+        }));
+      };
+      renderItems(document.getElementById('result-strengths'), evaluation.strengths, 'task_alt', 'text-primary');
+      renderItems(document.getElementById('result-improvements'), evaluation.improvements || evaluation.weaknesses, 'change_circle', 'text-secondary');
+      const testSummary = document.getElementById('result-test-summary');
+      if (testSummary) testSummary.textContent = `${evaluation.passed_tests || 0}/${evaluation.total_tests || 0} deterministic tests passing`;
+      const testResults = document.getElementById('result-test-results');
+      if (testResults && evaluation.test_results?.length) {
+        testResults.replaceChildren(...evaluation.test_results.map((test) => {
+          const row = document.createElement('div');
+          row.className = 'flex items-start justify-between gap-3 rounded-xl bg-surface-container p-space-sm';
+          const name = document.createElement('span');
+          name.className = 'font-body-sm text-on-surface';
+          name.textContent = test.name;
+          const status = document.createElement('span');
+          status.className = `font-code-sm ${test.status === 'PASS' ? 'text-primary' : 'text-secondary'}`;
+          status.textContent = test.status;
+          row.append(name, status);
+          return row;
+        }));
+      }
+      const nextDifficulty = document.getElementById('result-next-difficulty');
+      if (nextDifficulty && evaluation.next_difficulty) nextDifficulty.textContent = `Next: ${evaluation.next_difficulty}`;
     } catch (error) {
       console.error('Unable to load evaluation data:', error);
     }

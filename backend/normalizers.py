@@ -120,4 +120,15 @@ def normalize_evaluation(text: str) -> EvaluationResponse:
             or sections.get("RECOMMENDED NEXT STEP", "").strip()
             or "Review the challenge requirements and retry with additional edge cases."
         ),
+        status="completed",
+        passed_tests=max(0, int(data.get("passed_tests", 0))) if str(data.get("passed_tests", "")).isdigit() else 0,
+        total_tests=max(0, int(data.get("total_tests", 0))) if str(data.get("total_tests", 0)).isdigit() else 0,
+        failed_tests=max(0, int(data.get("failed_tests", 0))) if str(data.get("failed_tests", 0)).isdigit() else 0,
+        competency=str(data.get("competency") or "Developing"),
+        improvements=[str(item) for item in data.get("improvements", [])] if isinstance(data.get("improvements"), list) else [],
+        next_difficulty=str(data["next_difficulty"]) if data.get("next_difficulty") in {"beginner", "intermediate", "advanced"} else None,
+        test_results=[
+            {"name": str(item.get("name", "Test")), "status": str(item.get("status", "FAIL")), "detail": str(item.get("detail", ""))}
+            for item in data.get("test_results", []) if isinstance(item, dict)
+        ] if isinstance(data.get("test_results"), list) else [],
     )
