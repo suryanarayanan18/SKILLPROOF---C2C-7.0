@@ -1,9 +1,6 @@
-"""
-SkillProof Challenge Generator
+"""Generate practical challenges through the configured provider."""
 
-Generates practical Python skill assessment challenges
-using Google Gemini.
-"""
+import os
 
 from services.gemini import generate_text
 
@@ -26,6 +23,11 @@ def generate_challenge(
     Returns:
         A generated challenge as text.
     """
+
+    if os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower() in {"mock", "demo"}:
+        from services.demo_provider import generate_challenge as generate_demo_challenge
+
+        return generate_demo_challenge(skill=skill, difficulty=difficulty)
 
     prompt = f"""
 You are the Challenge Generator for SkillProof,

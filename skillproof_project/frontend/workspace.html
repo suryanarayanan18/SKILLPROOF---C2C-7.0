@@ -344,6 +344,8 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
 
       </div>
 
+      <div id="eval-error" class="hidden mx-4 my-3 rounded-lg border border-[#D47A68]/40 bg-[#3A1F22] px-3 py-2.5 text-xs text-[#FFD3CC]" role="alert"></div>
+
       <!-- BOTTOM TEST RESULTS DRAWER -->
       <div id="test-console" class="h-44 border-t border-[rgba(255,255,255,0.08)] bg-[#111012] flex flex-col flex-shrink-0 z-20 transition-all">
         <!-- Console Header -->
@@ -468,7 +470,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
   <script>
     let activeChallenge = null;
 
-    // Load the generated challenge into the existing workspace.
+    // Load active challenge into workspace
     document.addEventListener("DOMContentLoaded", async () => {
       if (window.SkillProofFlow) {
         activeChallenge = SkillProofFlow.getStoredAssessment();
@@ -481,13 +483,13 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
         const diffKey = SkillProofFlow.getDifficulty();
 
         const topSkillEl = document.getElementById('top-skill-badge');
-        if (topSkillEl) topSkillEl.textContent = activeChallenge.skill || skillKey;
+        if (topSkillEl) topSkillEl.textContent = activeChallenge.title ? `${skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}` : skillKey;
 
         const topDiffEl = document.getElementById('top-diff-badge');
         if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || diffKey;
 
         const protoEl = document.getElementById('challenge-protocol');
-        if (protoEl) protoEl.textContent = 'Attestation Protocol #' + (activeChallenge.challenge_id || 'LIVE').slice(-8);
+        if (protoEl && activeChallenge.protocolNode) protoEl.textContent = 'Attestation Protocol ' + activeChallenge.protocolNode;
 
         const titleEl = document.getElementById('challenge-title');
         if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
@@ -517,7 +519,17 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       }
     }
 
-    // Submit the edited solution to Gemini through the API.
+    // Finish evaluation and redirect
+    function finishEvaluation() {
+      if (evalInterval) clearInterval(evalInterval);
+      const editorEl = document.getElementById('code-input');
+      if (editorEl && window.SkillProofFlow) {
+        SkillProofFlow.setSolutionCode(editorEl.value);
+      }
+      window.location.href = 'evaluation.html';
+    }
+
+    // Interactive Submission Simulation Flow
     let evalInterval;
     async function startSubmissionEvaluation() {
       const overlay = document.getElementById('eval-overlay');
@@ -525,14 +537,14 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       const editorEl = document.getElementById('code-input');
       const assessmentId = SkillProofFlow.getAssessmentId();
       if (!assessmentId || !editorEl) {
-        window.alert('Start a generated challenge before submitting a solution.');
+        window.alert('Start a challenge before submitting a solution.');
         return;
       }
       overlay.classList.remove('hidden');
-      progressBar.style.width = '45%';
-      SkillProofFlow.setSolutionCode(editorEl.value);
-      const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
+      document.getElementById('eval-error').classList.add('hidden');
       try {
+        SkillProofFlow.setSolutionCode(editorEl.value);
+        const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
         const assessment = await SkillProofApi.submitSolution(assessmentId, {
           solution: editorEl.value,
           timeElapsedSeconds: Math.max(0, Math.round((Date.now() - startedAt) / 1000)),
@@ -542,8 +554,14 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
         window.location.href = 'evaluation.html';
       } catch (error) {
         overlay.classList.add('hidden');
-        window.alert(error.message);
+        showSubmissionError(error?.message || String(error));
       }
+    }
+
+    function showSubmissionError(message) {
+      const errorEl = document.getElementById('eval-error');
+      errorEl.textContent = `Error: ${message}`;
+      errorEl.classList.remove('hidden');
     }
 
     function cancelSubmission() {
@@ -563,8 +581,8 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
     }
 
     function resetTemplate() {
-      if (activeChallenge && (activeChallenge.starter_code || activeChallenge.starterCode)) {
-        document.getElementById('code-input').value = activeChallenge.starter_code || activeChallenge.starterCode;
+      if (activeChallenge && activeChallenge.starterCode) {
+        document.getElementById('code-input').value = activeChallenge.starterCode;
       } else {
         const defaultCode = `from typing import List, Dict, Any\nfrom collections import defaultdict\n\ndef aggregate_payload_stream(events: List[Dict[str, Any]]) -> Dict[str, Any]:\n    valid_buckets = defaultdict(list)\n    malformed_count = 0\n    for record in events:\n        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:\n            malformed_count += 1\n            continue\n        ts = record["timestamp"]\n        bucket_key = str(ts - (ts % 60))\n        valid_buckets[bucket_key].append(record)\n    return {"status": "success", "partitions": dict(valid_buckets), "malformed_dropped": malformed_count}\n`;
         document.getElementById('code-input').value = defaultCode;

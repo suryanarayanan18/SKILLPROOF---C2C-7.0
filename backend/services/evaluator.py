@@ -1,8 +1,6 @@
-"""
-SkillProof Solution Evaluator
+"""Evaluate submitted solutions through the configured provider."""
 
-Evaluates a candidate's submitted solution using Google Gemini.
-"""
+import os
 
 from services.gemini import generate_text
 
@@ -23,6 +21,11 @@ def evaluate_solution(
     - overall score
     - feedback
     """
+
+    if os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower() in {"mock", "demo"}:
+        from services.demo_provider import evaluate_solution as evaluate_demo_solution
+
+        return evaluate_demo_solution(challenge=challenge, solution=solution, skill=skill)
 
     prompt = f"""
 You are the SkillProof AI Evaluator.

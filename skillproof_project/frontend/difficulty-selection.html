@@ -261,7 +261,6 @@
 </div>
 <script src="js/mock_data.js"></script>
 <script src="js/flow.js"></script>
-<script src="js/api.js"></script>
 <script>
   (function() {
     const cards = document.querySelectorAll('.difficulty-card');
@@ -363,4 +362,10 @@
       });
     }
   })();
-</script></div></main></div></body></html>
+</script></div></main></div>
+<script>
+  document.getElementById('submit-btn')?.addEventListener('click', () => {
+    window.location.href = 'assessment-setup.html';
+  });
+</script>
+</body></html>

@@ -383,6 +383,7 @@
 </div>
 <script src="js/mock_data.js"></script>
 <script src="js/flow.js"></script>
+<script src="js/api.js"></script>
 <script>
   // Micro-interaction for SHA-256 Copy Action
   const copyBtn = document.getElementById('copy-hash');
@@ -407,10 +408,8 @@
       const passport = await SkillProofApi.getPassport();
       const score = document.querySelector('.font-display-xl');
       if (score) score.textContent = passport.overall_score;
-      const skillLabel = [...document.querySelectorAll('span')].find((element) => element.textContent.includes('Python · Intermediate Level'));
-      if (skillLabel) skillLabel.textContent = `${passport.skill} · ${passport.difficulty}`;
-      const summary = [...document.querySelectorAll('p')].find((element) => element.textContent.includes('Your Skill Passport summarizes'));
-      if (summary) summary.textContent = passport.summary;
+      const skill = [...document.querySelectorAll('span')].find((item) => item.textContent.includes('Python · Intermediate Level'));
+      if (skill) skill.textContent = `${passport.skill} · ${passport.difficulty}`;
     } catch (error) {
       console.info('No completed passport is available yet.');
     }

@@ -18,6 +18,24 @@ const SkillProofFlow = {
   setDifficulty(diffKey) {
     localStorage.setItem("skillproof_selected_difficulty", diffKey);
   },
+  getDemoChallenge() {
+    const difficulty = this.getDifficulty();
+    const source = window.SkillProofData?.challenges?.python?.[difficulty]
+      || window.SkillProofData?.challenges?.python?.intermediate;
+    return {
+      assessment_id: `demo-${difficulty}`,
+      challenge_id: source?.id || `demo-${difficulty}`,
+      skill: "Python",
+      difficulty,
+      title: source?.title || `${difficulty[0].toUpperCase()}${difficulty.slice(1)} Assessment`,
+      overview: source?.overview || "Complete the practical Python assessment.",
+      task: source?.task || "Implement the requested Python solution.",
+      constraints: source?.constraints || [],
+      starter_code: source?.starterCode || "def solve(data):\n    pass\n",
+      starterCode: source?.starterCode || "def solve(data):\n    pass\n",
+      examples: source?.example ? [source.example] : [],
+    };
+  },
   getAssessmentId() {
     return localStorage.getItem("skillproof_assessment_id") || null;
   },

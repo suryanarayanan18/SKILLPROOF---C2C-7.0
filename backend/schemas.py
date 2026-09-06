@@ -40,6 +40,10 @@ class SolutionSubmitRequest(BaseModel):
     time_elapsed_seconds: int | None = Field(default=None, ge=0)
 
 
+class EvaluationRequest(SolutionSubmitRequest):
+    assessment_id: str = Field(min_length=1)
+
+
 class EvaluationResponse(BaseModel):
     overall_score: int = Field(ge=0, le=100)
     correctness: int = Field(ge=0, le=100)
@@ -64,6 +68,7 @@ class AssessmentResponse(ChallengeResponse):
 class HealthResponse(BaseModel):
     status: Literal["ok"]
     service: str
+    provider: Literal["mock", "gemini"]
 
 
 class PassportResponse(BaseModel):

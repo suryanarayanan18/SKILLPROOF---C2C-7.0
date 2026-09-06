@@ -336,7 +336,7 @@
           } catch (error) {
             btn.classList.remove('pointer-events-none', 'opacity-80');
             btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">play_arrow</span><span>Begin Challenge</span>';
-            window.alert(error.message);
+            window.alert(error?.message || String(error));
           }
         });
       }
