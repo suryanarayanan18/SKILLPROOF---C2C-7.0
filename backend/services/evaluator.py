@@ -49,38 +49,10 @@ IMPORTANT:
 - Be fair to a beginner/intermediate/advanced candidate depending on the challenge.
 - Do not invent requirements that were not present in the challenge.
 
-Return the evaluation using EXACTLY this structure:
-
-OVERALL SCORE:
-<number from 0 to 100>
-
-CORRECTNESS:
-<number from 0 to 100>
-
-PROBLEM SOLVING:
-<number from 0 to 100>
-
-CODE QUALITY:
-<number from 0 to 100>
-
-UNDERSTANDING:
-<number from 0 to 100>
-
-STRENGTHS:
-- <strength>
-- <strength>
-
-WEAKNESSES:
-- <weakness>
-- <weakness>
-
-FEEDBACK:
-<short, useful feedback for the candidate>
-
-RECOMMENDED NEXT STEP:
-<what the candidate should practice next>
-
-Be concise but specific.
+Return ONLY a JSON object with overall_score, correctness, problem_solving,
+code_quality, efficiency, understanding, practical_application (all integers
+from 0 to 100), summary, strengths (array), weaknesses (array), feedback, and
+recommended_next_step. Do not wrap the JSON in Markdown. Be concise but specific.
 """
 
     return generate_text(prompt)
