@@ -158,7 +158,7 @@
             <svg class="w-4 h-4 text-[#D47A68]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             Production Scenario
           </h2>
-          <p class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed">
+          <p id="challenge-scenario" class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed">
             The existing legacy function <code class="font-mono text-[12px] bg-black/40 px-1.5 py-0.5 rounded text-[#D9A0AA]">aggregate_payload_stream()</code> suffers from O(N²) memory consumption during unordered timestamp streams and silently crashes when receiving malformed JSON metadata envelopes.
           </p>
         </div>
@@ -168,7 +168,7 @@
           <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73]"></span> Requirements
           </h3>
-          <ul class="space-y-2.5 text-xs sm:text-sm text-[#C8C1C3]">
+          <ul id="challenge-requirements" class="space-y-2.5 text-xs sm:text-sm text-[#C8C1C3]">
             <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
               <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">01</span>
               <span><strong>Temporal Grouping:</strong> Group events by 60-second time buckets while preserving chronological order within each bucket.</span>
@@ -189,7 +189,7 @@
           <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <span class="w-1.5 h-1.5 rounded-full bg-[#D47A68]"></span> Constraints
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div id="challenge-constraints" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
               <svg class="w-3.5 h-3.5 text-[#8D8789]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               <span>Max peak memory: <strong>&lt; 64MB</strong></span>
@@ -207,7 +207,7 @@
             <span>What we're evaluating</span>
             <span class="text-[11px] font-mono text-[#8D8789] normal-case">Multi-agent assessment</span>
           </h3>
-          <div class="space-y-2">
+          <div id="challenge-concepts" class="space-y-2">
             <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
               <span class="text-[#C8C1C3]">Problem Solving &amp; Decomposition</span>
               <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 20%</span>
@@ -469,40 +469,108 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
   <script src="js/api.js"></script>
   <script>
     let activeChallenge = null;
+    let isSubmitted = false;
+
+    function showSubmissionError(message, isConflict = false) {
+      const errorEl = document.getElementById('eval-error');
+      if (!errorEl) return;
+      if (isConflict) {
+        errorEl.innerHTML = `<strong>Submission Locked:</strong> ${message} <a href="evaluation.html" class="underline text-white font-semibold ml-2">View Evaluation &rarr;</a>`;
+      } else {
+        errorEl.textContent = `Error: ${message}`;
+      }
+      errorEl.classList.remove('hidden');
+    }
+
+    function lockSubmissionState() {
+      isSubmitted = true;
+      const editorEl = document.getElementById('code-input');
+      if (editorEl) editorEl.readOnly = true;
+      const btnSubmit = document.getElementById('btn-submit');
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+    }
 
     // Load active challenge into workspace
     document.addEventListener("DOMContentLoaded", async () => {
-      if (window.SkillProofFlow) {
-        activeChallenge = SkillProofFlow.getStoredAssessment();
-        if (!activeChallenge && SkillProofFlow.getAssessmentId()) {
-          activeChallenge = await SkillProofApi.getAssessment(SkillProofFlow.getAssessmentId());
-          SkillProofFlow.setAssessment(activeChallenge);
+      const assessmentId = window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null;
+      try {
+        if (assessmentId) {
+          activeChallenge = await SkillProofApi.getAssessment(assessmentId);
+        } else {
+          // No active assessment, create one with selected skill/difficulty
+          activeChallenge = await SkillProofApi.createAssessment({
+            skill: SkillProofFlow.getSkill(),
+            difficulty: SkillProofFlow.getDifficulty(),
+          });
         }
-        activeChallenge = activeChallenge || SkillProofFlow.getActiveChallenge();
-        const skillKey = SkillProofFlow.getSkill();
-        const diffKey = SkillProofFlow.getDifficulty();
+        SkillProofFlow.setAssessment(activeChallenge);
+      } catch (err) {
+        showSubmissionError(err.message || "Failed to connect to backend server. Please ensure backend is running.");
+        return;
+      }
 
-        const topSkillEl = document.getElementById('top-skill-badge');
-        if (topSkillEl) topSkillEl.textContent = activeChallenge.title ? `${skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}` : skillKey;
+      if (!activeChallenge) return;
 
-        const topDiffEl = document.getElementById('top-diff-badge');
-        if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || diffKey;
+      // Check if this assessment has already been submitted
+      if (activeChallenge.submitted_at || activeChallenge.result) {
+        lockSubmissionState();
+        showSubmissionError("This assessment has already been submitted and cannot be submitted again. One-shot verification is final.", true);
+      }
 
-        const protoEl = document.getElementById('challenge-protocol');
-        if (protoEl && activeChallenge.protocolNode) protoEl.textContent = 'Attestation Protocol ' + activeChallenge.protocolNode;
+      // Populate Title, Difficulty, Protocol badges
+      const skillName = activeChallenge.skill || "Python";
+      const topSkillEl = document.getElementById('top-skill-badge');
+      if (topSkillEl) topSkillEl.textContent = `${skillName} 3.11`;
 
-        const titleEl = document.getElementById('challenge-title');
-        if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
+      const topDiffEl = document.getElementById('top-diff-badge');
+      if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || "Intermediate";
 
-        const overviewEl = document.getElementById('challenge-overview');
-        if (overviewEl && activeChallenge.overview) overviewEl.textContent = activeChallenge.overview;
+      const protoEl = document.getElementById('challenge-protocol');
+      if (protoEl) {
+        const pId = (activeChallenge.problem_id || activeChallenge.challenge_id || activeChallenge.id || 'PY').slice(-6).toUpperCase();
+        protoEl.textContent = `Attestation Protocol #${pId} · v${activeChallenge.problem_version || '1.0'}`;
+      }
 
-        // Set starter code if not already saved
-        const savedCode = SkillProofFlow.getSolutionCode();
-        const editorEl = document.getElementById('code-input');
-        if (editorEl) {
-          editorEl.value = savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
-        }
+      const titleEl = document.getElementById('challenge-title');
+      if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
+
+      const desc = activeChallenge.description || activeChallenge.overview || "";
+      const overviewEl = document.getElementById('challenge-overview');
+      if (overviewEl && desc) overviewEl.textContent = desc;
+
+      const scenarioEl = document.getElementById('challenge-scenario');
+      if (scenarioEl && desc) scenarioEl.textContent = desc;
+
+      // Populate dynamic constraints if provided by generated problem
+      const constraintsEl = document.getElementById('challenge-constraints');
+      if (constraintsEl && activeChallenge.constraints && activeChallenge.constraints.length > 0) {
+        constraintsEl.innerHTML = activeChallenge.constraints.map(c => `
+          <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
+            <svg class="w-3.5 h-3.5 text-[#8D8789] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>${c}</span>
+          </div>
+        `).join('');
+      }
+
+      // Populate dynamic concepts if available
+      const conceptsEl = document.getElementById('challenge-concepts');
+      if (conceptsEl && activeChallenge.concepts && activeChallenge.concepts.length > 0) {
+        conceptsEl.innerHTML = activeChallenge.concepts.map(concept => `
+          <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+            <span class="text-[#C8C1C3]">${concept}</span>
+            <span class="text-[11px] font-mono text-[#D9A0AA]">Evaluated</span>
+          </div>
+        `).join('');
+      }
+
+      // Set starter code if not already modified
+      const savedCode = SkillProofFlow.getSolutionCode();
+      const editorEl = document.getElementById('code-input');
+      if (editorEl) {
+        editorEl.value = savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
       }
     });
 
@@ -519,83 +587,114 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       }
     }
 
-    // Finish evaluation and redirect
-    function finishEvaluation() {
-      if (evalInterval) clearInterval(evalInterval);
-      const editorEl = document.getElementById('code-input');
-      if (editorEl && window.SkillProofFlow) {
-        SkillProofFlow.setSolutionCode(editorEl.value);
-      }
-      window.location.href = 'evaluation.html';
-    }
-
-    // Interactive Submission Simulation Flow
+    // Submission Evaluation Flow
     let evalInterval;
     async function startSubmissionEvaluation() {
+      if (isSubmitted) {
+        showSubmissionError("This assessment has already been submitted and cannot be submitted again.", true);
+        return;
+      }
+
       const overlay = document.getElementById('eval-overlay');
       const progressBar = document.getElementById('eval-progress-bar');
       const editorEl = document.getElementById('code-input');
+      const btnSubmit = document.getElementById('btn-submit');
       const assessmentId = SkillProofFlow.getAssessmentId();
+
       if (!assessmentId || !editorEl) {
-        window.alert('Start a challenge before submitting a solution.');
+        window.alert('Assessment ID not found. Please start a challenge first.');
         return;
       }
+
+      const solutionCode = editorEl.value;
+      if (!solutionCode.trim()) {
+        showSubmissionError('Please write your solution code before submitting.');
+        return;
+      }
+
+      // Immediately lock editor to prevent modification during execution
+      editorEl.readOnly = true;
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
       overlay.classList.remove('hidden');
       document.getElementById('eval-error').classList.add('hidden');
+
       try {
-        SkillProofFlow.setSolutionCode(editorEl.value);
+        SkillProofFlow.setSolutionCode(solutionCode);
         const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
-        const assessment = await SkillProofApi.submitSolution(assessmentId, {
-          solution: editorEl.value,
-          timeElapsedSeconds: Math.max(0, Math.round((Date.now() - startedAt) / 1000)),
+        const timeElapsed = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+
+        const result = await SkillProofApi.submitSolution(assessmentId, {
+          solution: solutionCode,
+          timeElapsedSeconds: timeElapsed,
         });
+
+        lockSubmissionState();
         progressBar.style.width = '100%';
-        SkillProofFlow.setAssessment(assessment);
-        window.location.href = 'evaluation.html';
+
+        // Navigate to evaluation after short delay to view final report
+        setTimeout(() => {
+          window.location.href = 'evaluation.html';
+        }, 800);
       } catch (error) {
         overlay.classList.add('hidden');
-        showSubmissionError(error?.message || String(error));
+        if (error?.status === 409 || error?.message?.includes('already been submitted') || error?.message?.includes('409')) {
+          lockSubmissionState();
+          showSubmissionError("This assessment has already been submitted and cannot be submitted again. One-shot verification is final.", true);
+        } else {
+          // Re-enable if temporary infrastructure error
+          editorEl.readOnly = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          showSubmissionError(error?.message || String(error));
+        }
       }
-    }
-
-    function showSubmissionError(message) {
-      const errorEl = document.getElementById('eval-error');
-      errorEl.textContent = `Error: ${message}`;
-      errorEl.classList.remove('hidden');
     }
 
     function cancelSubmission() {
       if (evalInterval) clearInterval(evalInterval);
       document.getElementById('eval-overlay').classList.add('hidden');
+      if (!isSubmitted) {
+        const editorEl = document.getElementById('code-input');
+        if (editorEl) editorEl.readOnly = false;
+        const btnSubmit = document.getElementById('btn-submit');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
     }
 
     function runLocalTests() {
       const btn = document.getElementById('btn-run');
       const original = btn.innerHTML;
-      btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Testing sandbox...';
+      btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Validating sandbox...';
       setTimeout(() => {
         btn.innerHTML = original;
         const statusText = document.getElementById('test-status-text');
-        statusText.textContent = '3 / 3 Passing (All hermetic constraints met)';
-      }, 650);
+        statusText.textContent = 'Sandbox ready · Submit Solution to run isolated benchmark test suite';
+      }, 500);
     }
 
     function resetTemplate() {
-      if (activeChallenge && activeChallenge.starterCode) {
-        document.getElementById('code-input').value = activeChallenge.starterCode;
-      } else {
-        const defaultCode = `from typing import List, Dict, Any\nfrom collections import defaultdict\n\ndef aggregate_payload_stream(events: List[Dict[str, Any]]) -> Dict[str, Any]:\n    valid_buckets = defaultdict(list)\n    malformed_count = 0\n    for record in events:\n        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:\n            malformed_count += 1\n            continue\n        ts = record["timestamp"]\n        bucket_key = str(ts - (ts % 60))\n        valid_buckets[bucket_key].append(record)\n    return {"status": "success", "partitions": dict(valid_buckets), "malformed_dropped": malformed_count}\n`;
-        document.getElementById('code-input').value = defaultCode;
+      if (isSubmitted) return;
+      if (activeChallenge && (activeChallenge.starter_code || activeChallenge.starterCode)) {
+        document.getElementById('code-input').value = activeChallenge.starter_code || activeChallenge.starterCode;
       }
     }
 
     function toggleShortcuts() {
-      alert("Shortcuts:\n• ⌘+Enter: Run Local Tests\n• ⌘+S: Save Draft\n• ⌘+Shift+Enter: Submit Solution");
+      alert("Shortcuts:\n• ⌘+S: Save Draft\n• ⌘+Enter: Submit Solution");
     }
 
     // Countdown Timer Simulation
-    let minutes = 18;
-    let seconds = 42;
+    let minutes = 20;
+    let seconds = 0;
     setInterval(() => {
       if (seconds > 0) {
         seconds--;
@@ -610,4 +709,4 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
     }, 1000);
     sessionStorage.setItem('skillproof_started_at', sessionStorage.getItem('skillproof_started_at') || Date.now());
   </script>
-</body></html>
+</body></html>

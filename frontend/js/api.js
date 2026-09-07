@@ -12,14 +12,23 @@
     return (window.SkillProofApiBaseUrl || "").replace(/\/$/, "");
   }
 
-  async function request(path, options) {
-    const response = await fetch(baseUrl() + path, {
-      headers: { "Content-Type": "application/json" },
-      ...options,
-    });
+  async function request(path, options = {}) {
+    let response;
+    try {
+      response = await fetch(baseUrl() + path, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+    } catch (networkError) {
+      const err = new Error("Backend connection failed. Please ensure the SkillProof server is running.");
+      err.isNetworkError = true;
+      throw err;
+    }
+
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(errorMessage(body, `SkillProof API request failed (${response.status}).`));
+      const msg = errorMessage(body, `SkillProof API error (${response.status})`);
+      const error = new Error(msg);
       error.status = response.status;
       error.detail = body;
       throw error;
@@ -29,19 +38,18 @@
 
   window.SkillProofApi = {
     async createAssessment({ skill, difficulty } = {}) {
+      const candidateId = window.SkillProofFlow?.getCandidateId?.() || undefined;
       const res = await request("/api/assessment", {
         method: "POST",
         body: JSON.stringify({
           skill: skill || "python",
           difficulty: difficulty || "intermediate",
+          candidate_id: candidateId,
         }),
       });
 
-      if (res.candidate_id) {
-        localStorage.setItem("skillproof_candidate_id", res.candidate_id);
-      }
-      if (res.id) {
-        localStorage.setItem("skillproof_assessment_id", res.id);
+      if (res.candidate_id && window.SkillProofFlow) {
+        window.SkillProofFlow.setCandidateId(res.candidate_id);
       }
 
       const prob = res.problem || {};
@@ -53,14 +61,16 @@
         skill: "Python",
         difficulty: prob.difficulty || difficulty || "intermediate",
         title: prob.title || "Python Assessment",
-        overview: prob.description || "Complete the practical Python assessment.",
-        task: prob.description || "Implement the requested Python solution.",
+        description: prob.description || "",
+        overview: prob.description || "",
+        task: prob.description || "",
         constraints: prob.constraints || [],
         starter_code: prob.starter_code || "def solve(*args):\n    pass\n",
         starterCode: prob.starter_code || "def solve(*args):\n    pass\n",
-        tests: prob.tests || [],
+        concepts: prob.concepts || [],
+        algorithm_family: prob.algorithm_family || "General",
+        problem_version: prob.version || "1.0",
         calibration_version: res.calibration_version,
-        evaluation: null,
       };
 
       window.SkillProofFlow?.setAssessment?.(adapted);
@@ -71,27 +81,14 @@
       const res = await request(`/api/assessment/${encodeURIComponent(assessmentId)}`);
       const prob = res.problem || {};
 
-      let evaluation = null;
+      let result = null;
       try {
-        const resultRes = await request(`/api/assessment/${encodeURIComponent(assessmentId)}/result`);
-        if (resultRes && resultRes.overall_score !== undefined) {
-          evaluation = {
-            overall_score: Math.round(resultRes.overall_score),
-            correctness: Math.round(resultRes.breakdown?.problem_solving ?? resultRes.overall_score),
-            problem_solving: Math.round(resultRes.breakdown?.problem_solving ?? resultRes.overall_score),
-            code_quality: Math.round(resultRes.breakdown?.code_quality ?? 80),
-            efficiency: Math.round(resultRes.breakdown?.efficiency ?? 80),
-            understanding: Math.round(resultRes.breakdown?.algorithmic_thinking ?? 80),
-            practical_application: Math.round(resultRes.breakdown?.problem_solving ?? 80),
-            summary: `Assessment verified. Passed ${resultRes.tests_passed}/${resultRes.tests_total} tests with score ${resultRes.overall_score}/100.`,
-            feedback: `Deterministic execution in isolated sandbox. Runtime: ${resultRes.runtime}s. Memory: ${resultRes.memory} MB. Model version: ${resultRes.evaluation_model_version}.`,
-          };
-        }
+        result = await request(`/api/assessment/${encodeURIComponent(assessmentId)}/result`);
       } catch (e) {
-        // Result not yet submitted or not found; evaluation remains null
+        // Not submitted yet, result remains null
       }
 
-      return {
+      const adapted = {
         ...res,
         assessment_id: res.id,
         challenge_id: prob.id || res.id,
@@ -99,15 +96,21 @@
         skill: "Python",
         difficulty: prob.difficulty || "intermediate",
         title: prob.title || "Assessment",
+        description: prob.description || "",
         overview: prob.description || "",
         task: prob.description || "",
         constraints: prob.constraints || [],
         starter_code: prob.starter_code || "",
         starterCode: prob.starter_code || "",
-        tests: prob.tests || [],
+        concepts: prob.concepts || [],
+        algorithm_family: prob.algorithm_family || "General",
+        problem_version: prob.version || "1.0",
         calibration_version: res.calibration_version,
-        evaluation: evaluation,
+        result: result,
       };
+
+      window.SkillProofFlow?.setAssessment?.(adapted);
+      return adapted;
     },
 
     async submitSolution(assessmentId, { solution, timeElapsedSeconds } = {}) {
@@ -119,44 +122,30 @@
         }),
       });
 
-      const evaluation = {
-        overall_score: Math.round(res.overall_score),
-        correctness: Math.round(res.breakdown?.problem_solving ?? res.overall_score),
-        problem_solving: Math.round(res.breakdown?.problem_solving ?? res.overall_score),
-        code_quality: Math.round(res.breakdown?.code_quality ?? 80),
-        efficiency: Math.round(res.breakdown?.efficiency ?? 80),
-        understanding: Math.round(res.breakdown?.algorithmic_thinking ?? 80),
-        practical_application: Math.round(res.breakdown?.problem_solving ?? 80),
-        summary: `Assessment evaluation complete. Passed ${res.tests_passed}/${res.tests_total} tests with score ${res.overall_score}/100.`,
-        feedback: `Candidate solution executed in isolated subprocess sandbox. Total runtime: ${res.runtime}s. Memory: ${res.memory} MB. Model version: ${res.evaluation_model_version}.`,
-      };
-
       const adapted = {
         ...res,
         assessment_id: assessmentId,
-        evaluation: evaluation,
         submitted_solution: solution,
         time_elapsed_seconds: timeElapsedSeconds,
       };
 
-      window.SkillProofFlow?.setAssessment?.(adapted);
-      return adapted;
+      const existing = window.SkillProofFlow?.getStoredAssessment?.() || {};
+      window.SkillProofFlow?.setAssessment?.({
+        ...existing,
+        ...adapted,
+        result: res,
+      });
+
+      return res;
+    },
+
+    async getAssessmentResult(assessmentId) {
+      return request(`/api/assessment/${encodeURIComponent(assessmentId)}/result`);
     },
 
     async getPassport(candidateId) {
-      const candId = candidateId || localStorage.getItem("skillproof_candidate_id") || "latest";
-      const res = await request(`/api/passport/${encodeURIComponent(candId)}`);
-      return {
-        ...res,
-        overall_score: res.overall_score,
-        skill: res.skill || "Python",
-        difficulty: res.difficulty || "intermediate",
-        calibration_version: res.calibration_version,
-        evaluation_model_version: res.evaluation_model_version,
-        problem_title: res.problem_title,
-        competencies: res.competencies,
-        passport_id: res.passport_id,
-      };
+      const candId = candidateId || window.SkillProofFlow?.getCandidateId?.() || "latest";
+      return request(`/api/passport/${encodeURIComponent(candId)}`);
     },
 
     async getCalibrationStatus() {
@@ -168,3 +157,4 @@
     },
   };
 })();
+

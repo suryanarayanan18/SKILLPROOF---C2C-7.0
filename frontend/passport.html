@@ -9,10 +9,10 @@
 <div class="flex flex-col gap-space-xs max-w-3xl">
 <div class="inline-flex items-center gap-space-xs">
 <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-<span class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-widest">Attested Capability Record // Passport ID: SKP-9082-PY</span>
+<span id="passport-overline" class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-widest">Attested Capability Record // Passport ID: SP-PASS-PENDING</span>
 </div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Your Skill Passport</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+<h1 id="passport-title" class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Your Skill Passport</h1>
+<p id="passport-subtitle" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
 <span class="text-on-surface font-title-md">Evidence of what you can actually do.</span>
           Your Skill Passport summarizes demonstrated performance across your practical assessments.
         </p>
@@ -62,16 +62,16 @@
 <div class="flex flex-col">
 <div class="flex items-center gap-space-xs">
 <span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">SkillProof Hermetic Passport</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-sm text-code-sm text-secondary">PROD-v4.1</span>
+<span id="passport-model-badge" class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-sm text-code-sm text-secondary">Model v1.0</span>
 </div>
-<span class="font-code-sm text-code-sm text-on-surface-variant">HERMETIC EVALUATION ARCHIVE · REVISION 3 · ISSUED OCT 24, 2024</span>
+<span id="passport-meta-line" class="font-code-sm text-code-sm text-on-surface-variant">HERMETIC EVALUATION ARCHIVE · REVISION 1</span>
 </div>
 </div>
 <!-- Primary Active Credential Level Pill -->
 <div class="flex items-center gap-space-xs self-start md:self-auto">
-<span class="px-space-md py-1.5 rounded-full bg-surface-container-high text-on-surface font-title-md text-body-sm shadow-sm flex items-center gap-space-xs">
+<span id="passport-level-pill" class="px-space-md py-1.5 rounded-full bg-surface-container-high text-on-surface font-title-md text-body-sm shadow-sm flex items-center gap-space-xs">
 <span class="w-2 h-2 rounded-full bg-secondary"></span>
-<span>Python · Intermediate Level 2</span>
+<span>Python · Intermediate</span>
 </span>
 </div>
 </div>
@@ -80,14 +80,14 @@
 <!-- Left: Big Score & Attestation Seal -->
 <div class="lg:col-span-5 flex flex-col gap-space-md">
 <div class="flex items-baseline gap-space-sm">
-<span class="font-display-xl text-display-xl text-on-surface tracking-tighter leading-none font-bold">82</span>
+<span id="passport-score" class="font-display-xl text-display-xl text-on-surface tracking-tighter leading-none font-bold">--</span>
 <span class="font-headline-md text-headline-md text-on-surface-variant font-normal">/ 100</span>
-<span class="ml-space-xs px-space-xs py-1 rounded bg-secondary-container/40 text-secondary font-label-md text-label-md uppercase tracking-wider">Verified Practical Skill</span>
+<span id="passport-verified-badge" class="ml-space-xs px-space-xs py-1 rounded bg-secondary-container/40 text-secondary font-label-md text-label-md uppercase tracking-wider">Verified Practical Skill</span>
 </div>
 <div class="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-md bg-surface-container-low max-w-fit">
 <span class="material-symbols-outlined text-[16px] text-secondary">trending_up</span>
-<span class="font-body-sm text-body-sm text-on-surface font-title-md">+21 points</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">demonstrated over 3 adaptive attempts</span>
+<span id="passport-problem-pill" class="font-body-sm text-body-sm text-on-surface font-title-md">One-shot Attestation</span>
+<span id="passport-cand-pill" class="font-body-sm text-body-sm text-on-surface-variant">Candidate Verified</span>
 </div>
 <!-- Verification Seal & Cryptographic Node Trace -->
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-sm mt-space-2xs">
@@ -104,8 +104,8 @@
 <!-- SHA-256 Checksum Chip -->
 <div class="pt-space-xs flex items-center justify-between gap-space-sm">
 <div class="flex items-center gap-space-xs overflow-hidden">
-<span class="font-code-sm text-code-sm text-on-surface-variant">SHA-256:</span>
-<code class="font-code-sm text-code-sm text-secondary truncate">0x88f2940bc2a177e4d812...c91a</code>
+<span class="font-code-sm text-code-sm text-on-surface-variant">ID:</span>
+<code id="passport-hash-code" class="font-code-sm text-code-sm text-secondary truncate">SP-PASS-PENDING</code>
 </div>
 <button class="px-space-xs py-1 rounded hover:bg-surface-container-high transition-colors font-code-sm text-code-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1 shrink-0" id="copy-hash" type="button">
 <span class="material-symbols-outlined text-[14px]">content_copy</span>
@@ -317,28 +317,28 @@
 <div class="flex items-center justify-between pb-space-sm shadow-[0_1px_0_rgba(255,255,255,0.06)]">
 <div class="flex items-center gap-space-xs">
 <span class="material-symbols-outlined text-[20px] text-secondary">assignment_turned_in</span>
-<span class="font-title-md text-title-md text-on-surface">Python · Intermediate</span>
+<span id="evidence-skill-diff" class="font-title-md text-title-md text-on-surface">Python · Intermediate</span>
 </div>
-<span class="font-headline-sm text-headline-sm text-secondary font-bold">82 / 100</span>
+<span id="evidence-score" class="font-headline-sm text-headline-sm text-secondary font-bold">-- / 100</span>
 </div>
 <!-- Challenge Spec -->
 <div class="flex flex-col gap-space-xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Challenge Completed</span>
-<h3 class="font-title-md text-title-md text-on-surface">Resilient Stream Aggregator (#PY-8821)</h3>
-<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-              Architected asynchronous streaming microservice handling backpressure under strict <code class="font-code-sm text-code-sm text-on-surface">O(N log K)</code> throughput constraints with memory consumption capped below 64MB.
+<h3 id="evidence-title" class="font-title-md text-title-md text-on-surface">Assessment</h3>
+<p id="evidence-desc" class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Demonstrated bytecode execution and complexity constraints in isolated sandbox.
             </p>
 </div>
 <!-- Terminal Sandbox Trace Snippet -->
 <div class="p-space-sm rounded-lg bg-surface-container-lowest font-code-sm text-code-sm text-on-surface flex flex-col gap-1 overflow-x-auto shadow-inner">
 <div class="flex items-center justify-between text-on-surface-variant pb-1 shadow-[0_1px_0_rgba(255,255,255,0.05)]">
 <span>Hermetic Sandbox Runtime</span>
-<span class="text-secondary">24/24 PASS</span>
+<span id="evidence-tests" class="text-secondary">-- PASS</span>
 </div>
-<div class="text-on-surface-variant">&gt; Running AST Static Validator... [OK]</div>
-<div class="text-on-surface-variant">&gt; Simulating 50,000 stream payloads... [OK]</div>
-<div class="text-secondary">&gt; Execution: 28ms runtime | 18.4MB heap max</div>
-<div class="text-on-surface-variant">&gt; Memory Leak Test (120s stress): 0 bytes delta</div>
+<div id="evidence-models" class="text-on-surface-variant">&gt; Evaluator Model: v1.0 | Calib: v1.0</div>
+<div id="evidence-metrics" class="text-on-surface-variant">&gt; Static AST Complexity Analysis: Verified</div>
+<div id="evidence-runtime" class="text-secondary">&gt; Execution: --s runtime | --MB heap max</div>
+<div id="evidence-audit" class="text-on-surface-variant">&gt; Audit Mode: One-shot practical execution</div>
 </div>
 <!-- Improvement Log -->
 <div class="flex flex-col gap-space-xs">
@@ -429,22 +429,63 @@
   // Bind Dynamic Passport Data from SkillProof Backend
   (async function() {
     if (!window.SkillProofApi) return;
+    const candId = window.SkillProofFlow ? SkillProofFlow.getCandidateId() : (localStorage.getItem("skillproof_candidate_id") || "cand-demo");
     try {
-      const passport = await SkillProofApi.getPassport();
-      if (!passport || passport.error) return;
-
-      const scoreEl = document.querySelector('.font-display-xl');
-      if (scoreEl) scoreEl.textContent = Math.round(passport.overall_score);
-
-      const skillEl = [...document.querySelectorAll('span')].find((item) => item.textContent.includes('Python ·'));
-      if (skillEl) skillEl.textContent = `${passport.skill} · ${passport.difficulty.toUpperCase()} · ${passport.calibration_version}`;
-
-      const titleEl = document.querySelector('h1');
-      if (titleEl && passport.problem_title) {
-        titleEl.textContent = `SkillProof Passport — ${passport.problem_title}`;
+      const passport = await SkillProofApi.getPassport(candId);
+      if (!passport || passport.detail) {
+        throw new Error(passport?.detail || "No passport available");
       }
 
-      // Update competency bars if present
+      // 1. Header Overline and Title
+      const overlineEl = document.getElementById('passport-overline');
+      if (overlineEl) {
+        overlineEl.textContent = `Attested Capability Record // Passport ID: ${passport.passport_id} (${passport.candidate_id})`;
+      }
+
+      const titleEl = document.getElementById('passport-title');
+      if (titleEl && passport.problem_title) {
+        titleEl.textContent = `Skill Passport — ${passport.problem_title}`;
+      }
+
+      // 2. Hero Metadata Badges
+      const modelBadge = document.getElementById('passport-model-badge');
+      if (modelBadge) {
+        modelBadge.textContent = `Model ${passport.evaluation_model_version || 'v1.0'}`;
+      }
+
+      const metaLine = document.getElementById('passport-meta-line');
+      if (metaLine) {
+        const verifiedDate = passport.verified_at ? new Date(passport.verified_at).toLocaleDateString() : 'TODAY';
+        metaLine.textContent = `HERMETIC EVALUATION ARCHIVE · PROB v${passport.problem_version || '1.0'} · CALIB ${passport.calibration_version || 'v1.0'} · ${verifiedDate}`;
+      }
+
+      const levelPill = document.getElementById('passport-level-pill');
+      if (levelPill) {
+        levelPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-secondary"></span><span>${passport.skill || 'Python'} · ${(passport.difficulty || 'Intermediate').toUpperCase()}</span>`;
+      }
+
+      // 3. Hero Score
+      const scoreVal = Math.round(passport.overall_score || 0);
+      const scoreEl = document.getElementById('passport-score') || document.querySelector('.font-display-xl');
+      if (scoreEl) scoreEl.textContent = scoreVal;
+
+      const verifiedBadge = document.getElementById('passport-verified-badge');
+      if (verifiedBadge) {
+        verifiedBadge.textContent = passport.verified ? 'Verified Practical Skill' : 'Attestation Recorded';
+      }
+
+      const probPill = document.getElementById('passport-problem-pill');
+      if (probPill) probPill.textContent = passport.problem_title || 'One-shot Attestation';
+
+      const candPill = document.getElementById('passport-cand-pill');
+      if (candPill) candPill.textContent = passport.candidate_id;
+
+      const hashEl = document.getElementById('passport-hash-code');
+      if (hashEl) {
+        hashEl.textContent = `${passport.passport_id} · Model ${passport.evaluation_model_version}`;
+      }
+
+      // 4. Competency Matrix
       if (passport.competencies) {
         const comps = passport.competencies;
         document.querySelectorAll('.flex.justify-between.items-center.text-body-sm').forEach((row) => {
@@ -460,13 +501,65 @@
         });
       }
 
-      // Update evidence tags
-      const hashEl = document.querySelector('code.font-code-sm');
-      if (hashEl && passport.passport_id) {
-        hashEl.textContent = `${passport.passport_id} · Model ${passport.evaluation_model_version}`;
+      // 5. Evidence Section
+      const evSkillDiff = document.getElementById('evidence-skill-diff');
+      if (evSkillDiff) {
+        evSkillDiff.textContent = `${passport.skill || 'Python'} · ${(passport.difficulty || 'Intermediate').toUpperCase()}`;
       }
+
+      const evScore = document.getElementById('evidence-score');
+      if (evScore) evScore.textContent = `${scoreVal} / 100`;
+
+      const evTitle = document.getElementById('evidence-title');
+      if (evTitle) evTitle.textContent = passport.problem_title || 'Algorithmic Challenge';
+
+      const evDesc = document.getElementById('evidence-desc');
+      if (evDesc) {
+        evDesc.textContent = `Algorithm Family: ${passport.algorithm_family || 'General'} · Solved under isolated sandbox runtime · TinyML Calib: ${passport.calibration_version}.`;
+      }
+
+      const evTests = document.getElementById('evidence-tests');
+      if (evTests && passport.evidence) {
+        evTests.textContent = `${passport.evidence.tests_passed || 'Pass'} PASS (${Math.round((passport.evidence.pass_ratio || 1) * 100)}%)`;
+      }
+
+      const evModels = document.getElementById('evidence-models');
+      if (evModels) {
+        evModels.textContent = `> Evaluator Model: ${passport.evaluation_model_version} | Calib: ${passport.calibration_version}`;
+      }
+
+      const evRuntime = document.getElementById('evidence-runtime');
+      if (evRuntime && passport.evidence) {
+        evRuntime.textContent = `> Execution: ${passport.evidence.runtime_seconds}s runtime | ${passport.evidence.memory_mb}MB peak heap`;
+      }
+
+      const evMetrics = document.getElementById('evidence-metrics');
+      if (evMetrics && passport.evidence?.code_metrics) {
+        const cm = passport.evidence.code_metrics;
+        evMetrics.textContent = `> Code Complexity: Cyclomatic ${cm.cyclomatic_complexity || 1} | LOC ${cm.lines_of_code || 10} | Funcs ${cm.function_count || 1}`;
+      }
+
     } catch (error) {
-      console.info('No completed passport is available yet:', error);
+      console.warn('No completed passport available yet for candidate:', candId, error);
+      const mainSection = document.querySelector('section');
+      if (mainSection) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'p-6 my-4 rounded-xl bg-[#201F20] border border-[rgba(255,180,165,0.2)] text-center';
+        emptyState.innerHTML = `
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#353436] text-[#FFB4AB] mb-3">
+            <span class="material-symbols-outlined text-[24px]">verified_user</span>
+          </div>
+          <h2 class="text-lg font-bold text-white mb-1">No Completed Assessment on Record</h2>
+          <p class="text-sm text-[#C8C1C3] max-w-md mx-auto mb-4">
+            Candidate <code class="font-mono text-[#FFB4AB]">${candId}</code> has not submitted any one-shot assessments yet. Complete an assessment to generate your immutable Skill Passport.
+          </p>
+          <a href="skill-selection.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary font-semibold text-sm hover:opacity-90 transition-opacity">
+            <span>Start One-Shot Assessment</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </a>
+        `;
+        mainSection.prepend(emptyState);
+      }
     }
   })();
 </script></div></main></div></body></html>

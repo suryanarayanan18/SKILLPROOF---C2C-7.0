@@ -395,6 +395,111 @@ def test_calibration_observation_and_guardrails():
         db.DB_PATH = old_db
 
 
+def test_frontend_complete_flow():
+    """Verify complete end-to-end frontend client flow from landing to passport."""
+    # 1. Verify all frontend static pages serve 200 OK
+    pages = [
+        "/",
+        "/index.html",
+        "/skill-selection.html",
+        "/difficulty-selection.html",
+        "/assessment-setup.html",
+        "/workspace.html",
+        "/evaluation.html",
+        "/passport.html",
+        "/analytics.html",
+    ]
+    for page in pages:
+        r = client.get(page)
+        assert r.status_code == 200, f"Page {page} failed to serve: {r.status_code}"
+
+    # 2. Step 1: Candidate selects skill and difficulty -> creates assessment
+    cand_id = "cand-test-flow-88"
+    r_create = client.post(
+        "/api/assessment",
+        json={"skill": "python", "difficulty": "intermediate", "candidate_id": cand_id},
+    )
+    assert r_create.status_code == 201
+    asm_data = r_create.json()
+    asm_id = asm_data["id"]
+    problem = asm_data["problem"]
+    assert asm_data["candidate_id"] == cand_id
+    assert "title" in problem
+    assert "constraints" in problem
+    assert "starter_code" in problem
+
+    # 3. Step 2: Candidate workspace loads assessment
+    r_fetch = client.get(f"/api/assessment/{asm_id}")
+    assert r_fetch.status_code == 200
+    fetched_prob = r_fetch.json()["problem"]
+    assert fetched_prob["title"] == problem["title"]
+    assert "tests" not in fetched_prob  # Never exposed to client
+
+    # 4. Step 3: Candidate submits solution in workspace
+    r_submit = client.post(
+        f"/api/assessment/{asm_id}/submit",
+        json={"solution": problem["starter_code"] + "\n    return True\n", "time_taken": 25.0},
+    )
+    assert r_submit.status_code == 200
+    sub_data = r_submit.json()
+    assert "overall_score" in sub_data
+    assert "tests_passed" in sub_data
+    assert "tests_total" in sub_data
+    assert "breakdown" in sub_data
+    assert "problem_solving" in sub_data["breakdown"]
+    assert "algorithmic_thinking" in sub_data["breakdown"]
+    assert "efficiency" in sub_data["breakdown"]
+    assert "code_quality" in sub_data["breakdown"]
+    assert "problem_version" in sub_data
+    assert "calibration_version" in sub_data
+    assert "evaluation_model_version" in sub_data
+
+    # 5. Step 4: Resubmission attempt must return 409 Conflict
+    r_conflict = client.post(
+        f"/api/assessment/{asm_id}/submit",
+        json={"solution": "def different(): pass"},
+    )
+    assert r_conflict.status_code == 409
+    assert "already been submitted" in r_conflict.json()["detail"].lower()
+
+    # 6. Step 5: Evaluation screen fetches result
+    r_res = client.get(f"/api/assessment/{asm_id}/result")
+    assert r_res.status_code == 200
+    res_data = r_res.json()
+    assert res_data["overall_score"] == sub_data["overall_score"]
+
+    # 7. Step 6: Passport screen fetches candidate passport
+    r_pass = client.get(f"/api/passport/{cand_id}")
+    assert r_pass.status_code == 200
+    pass_data = r_pass.json()
+    assert pass_data["candidate_id"] == cand_id
+    assert pass_data["overall_score"] == sub_data["overall_score"]
+    assert "passport_id" in pass_data
+    assert "competencies" in pass_data
+    assert "evidence" in pass_data
+    assert "tests_passed" in pass_data["evidence"]
+    assert "runtime_seconds" in pass_data["evidence"]
+    assert "memory_mb" in pass_data["evidence"]
+    assert "problem_version" in pass_data
+    assert "calibration_version" in pass_data
+    assert "evaluation_model_version" in pass_data
+
+    # 8. Unassessed candidate returns 404
+    r_empty = client.get("/api/passport/unassessed-candidate-xyz")
+    assert r_empty.status_code == 404
+
+    # 9. Analytics dashboard gets calibration status
+    r_calib = client.get("/api/calibration/status")
+    assert r_calib.status_code == 200
+    calib_data = r_calib.json()
+    assert "active_model_version" in calib_data
+    assert "calibration_version" in calib_data
+    assert "benchmark_score" in calib_data
+    assert "observation_count" in calib_data
+    assert "guardrails" in calib_data
+
+
+
 if __name__ == "__main__":
     import inspect
     import sys

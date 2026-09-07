@@ -6,43 +6,53 @@
  */
 
 const SkillProofFlow = {
+  getCandidateId() {
+    let id = localStorage.getItem("skillproof_candidate_id");
+    if (!id) {
+      id = "cand-" + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem("skillproof_candidate_id", id);
+    }
+    return id;
+  },
+
+  setCandidateId(id) {
+    if (id) {
+      localStorage.setItem("skillproof_candidate_id", id);
+    }
+  },
+
   getSkill() {
     return localStorage.getItem("skillproof_selected_skill") || "python";
   },
+
   setSkill(skillKey) {
     localStorage.setItem("skillproof_selected_skill", skillKey);
   },
+
   getDifficulty() {
     return localStorage.getItem("skillproof_selected_difficulty") || "intermediate";
   },
+
   setDifficulty(diffKey) {
     localStorage.setItem("skillproof_selected_difficulty", diffKey);
   },
-  getDemoChallenge() {
-    const difficulty = this.getDifficulty();
-    const source = window.SkillProofData?.challenges?.python?.[difficulty]
-      || window.SkillProofData?.challenges?.python?.intermediate;
-    return {
-      assessment_id: `demo-${difficulty}`,
-      challenge_id: source?.id || `demo-${difficulty}`,
-      skill: "Python",
-      difficulty,
-      title: source?.title || `${difficulty[0].toUpperCase()}${difficulty.slice(1)} Assessment`,
-      overview: source?.overview || "Complete the practical Python assessment.",
-      task: source?.task || "Implement the requested Python solution.",
-      constraints: source?.constraints || [],
-      starter_code: source?.starterCode || "def solve(data):\n    pass\n",
-      starterCode: source?.starterCode || "def solve(data):\n    pass\n",
-      examples: source?.example ? [source.example] : [],
-    };
-  },
+
   getAssessmentId() {
     return localStorage.getItem("skillproof_assessment_id") || null;
   },
+
   setAssessment(assessment) {
-    localStorage.setItem("skillproof_assessment_id", assessment.assessment_id);
+    if (!assessment) return;
+    const id = assessment.assessment_id || assessment.id;
+    if (id) {
+      localStorage.setItem("skillproof_assessment_id", id);
+    }
+    if (assessment.candidate_id) {
+      this.setCandidateId(assessment.candidate_id);
+    }
     localStorage.setItem("skillproof_active_assessment", JSON.stringify(assessment));
   },
+
   getStoredAssessment() {
     try {
       return JSON.parse(localStorage.getItem("skillproof_active_assessment") || "null");
@@ -50,21 +60,15 @@ const SkillProofFlow = {
       return null;
     }
   },
+
   getSolutionCode() {
     return localStorage.getItem("skillproof_solution_code") || null;
   },
+
   setSolutionCode(code) {
     localStorage.setItem("skillproof_solution_code", code);
   },
-  getActiveChallenge() {
-    const skill = this.getSkill();
-    const diff = this.getDifficulty();
-    const skillData = window.SkillProofData?.challenges[skill] || window.SkillProofData?.challenges.python;
-    return skillData[diff] || skillData.intermediate || window.SkillProofData?.challenges.python.intermediate;
-  },
-  getEvaluation() {
-    return window.SkillProofData?.evaluation || {};
-  },
+
   resetSession() {
     localStorage.removeItem("skillproof_selected_skill");
     localStorage.removeItem("skillproof_selected_difficulty");
@@ -75,3 +79,4 @@ const SkillProofFlow = {
 };
 
 window.SkillProofFlow = SkillProofFlow;
+
