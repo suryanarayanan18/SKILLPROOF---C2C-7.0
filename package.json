@@ -1,0 +1,25 @@
+{
+  "name": "skillproof---c2c-7.0",
+  "version": "1.0.0",
+  "description": "> Verify ability, not credentials.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suryanarayanan18/SKILLPROOF---C2C-7.0.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/suryanarayanan18/SKILLPROOF---C2C-7.0/issues"
+  },
+  "homepage": "https://github.com/suryanarayanan18/SKILLPROOF---C2C-7.0#readme",
+  "devDependencies": {
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}
