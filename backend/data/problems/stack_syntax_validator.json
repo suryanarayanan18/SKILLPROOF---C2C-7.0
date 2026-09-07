@@ -1,7 +1,7 @@
 {
   "id": "stack_syntax_validator",
   "template_title": "{domain_title}: Structural Grammar Validation",
-  "template_description": "In a {domain_context}, validate structural syntax integrity. Given an expression string `expression`, determine whether all bracket characters '(', ')', '[', ']', '{', '}' are properly balanced and closed in valid hierarchical order. Characters other than brackets (alphanumerics, spaces, punctuation) may be present and should be ignored during bracket pairing. Return True if validly balanced, otherwise return False.",
+  "template_description": "In a {domain_context}, validate structural syntax integrity. Given an expression string `expression`, determine whether all bracket characters '(', ')', '[', ']', '{{', '}}' are properly balanced and closed in valid hierarchical order. Characters other than brackets (alphanumerics, spaces, punctuation) may be present and should be ignored during bracket pairing. Return True if validly balanced, otherwise return False.",
   "difficulty": "beginner",
   "concepts": ["stacks", "strings", "parsing"],
   "algorithm_family": "Stacks & Parsing",

@@ -35,7 +35,11 @@ from services.calibration import (
     record_validated_observation,
     trigger_calibration_retrain,
 )
-from services.challenge_generator import generate_challenge, get_canonical_fallback_problem
+from services.challenge_generator import (
+    generate_challenge,
+    generate_validated_challenge,
+    get_canonical_fallback_problem,
+)
 from services.evaluator import evaluate_execution_metrics
 from services.executor import execute_solution_tests
 from services.problem_validator import validate_problem
@@ -93,33 +97,14 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
     active_model = get_active_model()
     candidate_id = payload.candidate_id or f"cand-{uuid4().hex[:8]}"
 
-    # Generate and self-validate problem variation
-    max_retries = 3
-    valid_problem: Optional[Dict[str, Any]] = None
+    # Generate and validate problem variation (discards and regenerates if invalid)
+    valid_problem = generate_validated_challenge(
+        skill=payload.skill,
+        difficulty=payload.difficulty,
+        seed_problem_id=payload.seed_problem_id,
+    )
 
-    for _ in range(max_retries):
-        candidate_problem = generate_challenge(
-            skill=payload.skill,
-            difficulty=payload.difficulty,
-            seed_problem_id=payload.seed_problem_id,
-        )
-        is_valid, report = validate_problem(candidate_problem)
-        if is_valid:
-            valid_problem = candidate_problem
-            break
-
-    # Safety fallback to pre-validated canonical seed problem if variation generation fails validation
-    if not valid_problem:
-        logger.warning("Variation generation failed validation; using validated canonical fallback.")
-        valid_problem = get_canonical_fallback_problem(
-            difficulty=payload.difficulty,
-            seed_problem_id=payload.seed_problem_id,
-        )
-        is_valid, _ = validate_problem(valid_problem)
-        if not is_valid:
-            logger.error("Canonical fallback validation failed!")
-
-    # Persist problem in SQLite
+    # Persist problem in SQLite (stores reference_solution and hidden tests securely)
     db.save_problem(valid_problem)
 
     # Create assessment record
@@ -131,9 +116,17 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
         calibration_version=active_model.version,
     )
 
+    metadata = valid_problem.get("metadata", {
+        "seed_problem_id": valid_problem.get("seed_problem_id", ""),
+        "transformation_type": valid_problem.get("transformation_type", "domain_adaptation+parameter_scaling"),
+        "problem_version": valid_problem.get("version", "1.0"),
+    })
+
+    # Public problem view: NEVER contains reference_solution or tests!
     problem_view = ProblemPublicView(
         id=valid_problem["id"],
         seed_problem_id=valid_problem.get("seed_problem_id"),
+        transformation_type=valid_problem.get("transformation_type", "domain_adaptation+parameter_scaling"),
         title=valid_problem["title"],
         description=valid_problem["description"],
         difficulty=valid_problem["difficulty"],
@@ -142,6 +135,7 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
         constraints=valid_problem.get("constraints", []),
         starter_code=valid_problem.get("starter_code", ""),
         version=valid_problem.get("version", "1.0"),
+        metadata=metadata,
     )
 
     return AssessmentResponse(
@@ -166,9 +160,17 @@ def get_assessment(id: str) -> AssessmentResponse:
     if not problem:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found.")
 
+    metadata = {
+        "seed_problem_id": problem.get("seed_problem_id", problem.get("id")),
+        "transformation_type": "domain_adaptation+parameter_scaling",
+        "problem_version": problem.get("version", "1.0"),
+    }
+
+    # Public problem view: NEVER contains reference_solution or tests!
     problem_view = ProblemPublicView(
         id=problem["id"],
         seed_problem_id=problem.get("seed_problem_id"),
+        transformation_type="domain_adaptation+parameter_scaling",
         title=problem["title"],
         description=problem["description"],
         difficulty=problem["difficulty"],
@@ -177,6 +179,7 @@ def get_assessment(id: str) -> AssessmentResponse:
         constraints=problem.get("constraints", []),
         starter_code=problem.get("starter_code", ""),
         version=problem.get("version", "1.0"),
+        metadata=metadata,
     )
 
     return AssessmentResponse(

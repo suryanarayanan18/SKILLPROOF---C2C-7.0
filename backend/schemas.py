@@ -56,6 +56,7 @@ class ChallengeResponse(BaseModel):
 class ProblemPublicView(BaseModel):
     id: str
     seed_problem_id: Optional[str] = None
+    transformation_type: Optional[str] = None
     title: str
     description: str
     difficulty: str
@@ -64,6 +65,7 @@ class ProblemPublicView(BaseModel):
     constraints: List[str]
     starter_code: str
     version: str
+    metadata: Optional[Dict[str, Any]] = None
 
 
 
