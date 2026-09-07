@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Literal, Optional
+from pydantic import BaseModel, Field, field_validator
+
+
+Difficulty = Literal["beginner", "intermediate", "advanced"]
 
 
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "skillproof-api"
     version: str = "1.0.0"
+    provider: str = "mock"
     active_calibration_version: str = "v1.0"
     active_model_version: str = "v1.0"
 
@@ -19,6 +23,34 @@ class AssessmentCreateRequest(BaseModel):
     skill: str = "python"
     difficulty: str = "intermediate"
     seed_problem_id: Optional[str] = None
+
+
+class ChallengeCreateRequest(BaseModel):
+    skill: str = Field(min_length=1, max_length=100, default="Python")
+    difficulty: Difficulty = "intermediate"
+    previous_performance: Optional[str] = None
+    target_weakness: Optional[str] = None
+
+    @field_validator("skill")
+    @classmethod
+    def python_only(cls, value: str) -> str:
+        if value.strip().lower() != "python":
+            raise ValueError("Only Python assessments are currently supported.")
+        return "Python"
+
+
+class ChallengeResponse(BaseModel):
+    assessment_id: str
+    challenge_id: str
+    skill: str = "Python"
+    difficulty: str = "intermediate"
+    title: str
+    overview: str
+    task: str
+    constraints: List[str] = Field(default_factory=list)
+    starter_code: str
+    examples: List[Dict[str, Any]] = Field(default_factory=list)
+    calibration_version: Optional[str] = "v1.0"
 
 
 class ProblemPublicView(BaseModel):
@@ -44,8 +76,40 @@ class AssessmentResponse(BaseModel):
 
 
 class SubmissionRequest(BaseModel):
-    solution: str
+    solution: str = Field(min_length=1)
     time_taken: Optional[float] = 0.0
+
+
+class SolutionSubmitRequest(BaseModel):
+    solution: str = Field(min_length=1, max_length=100_000)
+    time_elapsed_seconds: Optional[int] = Field(default=None, ge=0)
+
+
+class EvaluationRequest(SolutionSubmitRequest):
+    assessment_id: str = Field(min_length=1)
+
+
+class EvaluationResponse(BaseModel):
+    overall_score: int = Field(ge=0, le=100)
+    correctness: int = Field(ge=0, le=100)
+    problem_solving: int = Field(ge=0, le=100)
+    code_quality: int = Field(ge=0, le=100)
+    efficiency: int = Field(ge=0, le=100)
+    understanding: int = Field(ge=0, le=100)
+    practical_application: int = Field(ge=0, le=100)
+    summary: str
+    strengths: List[str] = Field(default_factory=list)
+    weaknesses: List[str] = Field(default_factory=list)
+    feedback: str
+    recommended_next_step: str
+    status: Literal["completed"] = "completed"
+    passed_tests: int = Field(default=0, ge=0)
+    total_tests: int = Field(default=0, ge=0)
+    failed_tests: int = Field(default=0, ge=0)
+    competency: str = "Developing"
+    improvements: List[str] = Field(default_factory=list)
+    next_difficulty: Optional[Difficulty] = None
+    test_results: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class TestRunResult(BaseModel):
@@ -114,6 +178,15 @@ class SkillPassportResponse(BaseModel):
     problem_version: str
     calibration_version: str
     evaluation_model_version: str
+
+
+class PassportResponse(BaseModel):
+    assessment_id: str
+    skill: str
+    difficulty: str
+    overall_score: int
+    verified: bool
+    summary: str
 
 
 class CalibrationObservationRequest(BaseModel):

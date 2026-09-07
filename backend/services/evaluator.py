@@ -94,3 +94,22 @@ def evaluate_execution_metrics(
         "code_metrics": code_metrics,
         "execution_error": raw_execution.get("error"),
     }
+
+
+def evaluate_solution(
+    challenge: Any = "",
+    solution: str = "",
+    skill: str = "Python",
+    difficulty: Any = None,
+    **kwargs: Any,
+) -> str:
+    """Deterministic evaluation function for compatibility with test suites and demo provider."""
+    from services.demo_provider import evaluate_solution as evaluate_demo_solution
+
+    return evaluate_demo_solution(
+        challenge=str(challenge),
+        solution=solution,
+        skill=skill,
+        difficulty=difficulty,
+    )
+

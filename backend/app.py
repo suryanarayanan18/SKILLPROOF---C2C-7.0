@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -18,14 +19,19 @@ from schemas import (
     AssessmentResponse,
     CalibrationObservationRequest,
     CalibrationStatusResponse,
+    ChallengeCreateRequest,
+    ChallengeResponse,
     CodeQualityMetrics,
+    EvaluationRequest,
     HealthResponse,
+    PassportResponse,
     PassportSkillEntry,
     ProblemPublicView,
     ResultBreakdown,
     ResultResponse,
     RetrainResponse,
     SkillPassportResponse,
+    SolutionSubmitRequest,
     SubmissionRequest,
     TestRunResult,
 )
@@ -35,7 +41,7 @@ from services.calibration import (
     trigger_calibration_retrain,
 )
 from services.challenge_generator import generate_challenge
-from services.evaluator import evaluate_execution_metrics
+from services.evaluator import evaluate_execution_metrics, evaluate_solution
 from services.executor import execute_solution_tests
 from services.problem_validator import validate_problem
 from services.scoring import compute_scores
@@ -46,8 +52,11 @@ logger = logging.getLogger("skillproof.app")
 # Initialize database tables on startup
 db.init_db()
 
-# Bootstrap active model
+# Bootstrap active TinyML model
 get_active_model()
+
+# Process-local cache for compatibility with test suites
+ASSESSMENTS: Dict[str, Any] = {}
 
 app = FastAPI(
     title="SkillProof API",
@@ -64,16 +73,33 @@ app.add_middleware(
 )
 
 
+def _gemini_error(error: Exception) -> HTTPException:
+    logger.exception("Gemini request failed: %s", type(error).__name__, exc_info=error)
+    message = str(error)
+    if "GEMINI_API_KEY" in message:
+        return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Gemini API key is not configured.")
+    if any(marker in message.upper() for marker in ("429", "RESOURCE_EXHAUSTED", "QUOTA", "RATE LIMIT")):
+        return HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Gemini API limit reached. Please try again later.")
+    return HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Gemini request failed. Please try again.")
+
+
 @app.get("/api/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     active_model = get_active_model()
+    provider = os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower()
     return HealthResponse(
         status="ok",
         service="skillproof-api",
         version="1.0.0",
+        provider="gemini" if provider == "gemini" else "mock",
         active_calibration_version=active_model.version,
         active_model_version=active_model.version,
     )
+
+
+# ---------------------------------------------------------------------------
+# Core One-Shot Assessment & Calibration API (PRD & Build Brief)
+# ---------------------------------------------------------------------------
 
 
 @app.post("/api/assessment", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
@@ -102,7 +128,6 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
             break
 
     if not valid_problem:
-        # Fallback to candidate problem anyway if validation timed out
         valid_problem = candidate_problem
 
     # Save problem in SQLite
@@ -141,7 +166,7 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
 
 
 @app.get("/api/assessment/{assessment_id}", response_model=AssessmentResponse)
-def get_assessment(assessment_id: str) -> AssessmentResponse:
+def get_assessment_singular(assessment_id: str) -> AssessmentResponse:
     """Retrieves an existing assessment session and problem definition."""
     assessment = db.get_assessment(assessment_id)
     if not assessment:
@@ -330,7 +355,6 @@ def get_skill_passport(candidate_id: str) -> SkillPassportResponse:
             detail=f"No completed assessments found for candidate '{candidate_id}'.",
         )
 
-    # Use the most recent completed assessment
     latest = results[0]
     breakdown = latest["breakdown"]
     overall_score = latest["overall_score"]
@@ -420,70 +444,217 @@ def trigger_retrain() -> RetrainResponse:
         )
 
 
-# Compatibility routes matching existing Stitch frontend conventions
+# ---------------------------------------------------------------------------
+# Compatibility Endpoints for Existing Stitch Frontend & Test Harnesses
+# ---------------------------------------------------------------------------
+
+
 @app.post("/api/challenges", status_code=status.HTTP_201_CREATED)
-def legacy_create_challenge(payload: Dict[str, Any]) -> Dict[str, Any]:
-    req = AssessmentCreateRequest(
-        skill=payload.get("skill", "python"),
-        difficulty=payload.get("difficulty", "intermediate"),
+def legacy_create_challenge(payload: ChallengeCreateRequest) -> Dict[str, Any]:
+    provider = os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower()
+    try:
+        raw_challenge = generate_challenge(
+            skill=payload.skill,
+            difficulty=payload.difficulty,
+            previous_performance=payload.previous_performance,
+            target_weakness=payload.target_weakness,
+        )
+    except Exception as error:
+        if provider == "gemini":
+            raise _gemini_error(error)
+        from services.demo_provider import generate_challenge as generate_demo_challenge
+
+        raw_challenge = generate_demo_challenge(skill=payload.skill, difficulty=payload.difficulty)
+
+    assessment_id = f"asm-{uuid4().hex[:12]}"
+    challenge_id = f"challenge-{uuid4().hex[:8]}"
+
+    if isinstance(raw_challenge, dict):
+        ch_dict = {
+            "assessment_id": assessment_id,
+            "challenge_id": raw_challenge.get("id", challenge_id),
+            "skill": payload.skill,
+            "difficulty": raw_challenge.get("difficulty", payload.difficulty),
+            "title": raw_challenge.get("title", f"{payload.difficulty.capitalize()} Assessment"),
+            "overview": raw_challenge.get("description", raw_challenge.get("overview", "")),
+            "task": raw_challenge.get("description", raw_challenge.get("task", "")),
+            "constraints": raw_challenge.get("constraints", []),
+            "starter_code": raw_challenge.get("starter_code", ""),
+            "examples": raw_challenge.get("examples", []),
+            "tests": raw_challenge.get("tests", []),
+            "reference_solution": raw_challenge.get("reference_solution", ""),
+            "calibration_version": get_active_model().version,
+        }
+    else:
+        from normalizers import normalize_challenge
+
+        norm = normalize_challenge(
+            raw_challenge,
+            assessment_id=assessment_id,
+            challenge_id=challenge_id,
+            skill=payload.skill,
+            difficulty=payload.difficulty,
+        )
+        ch_dict = norm.model_dump()
+        ch_dict["calibration_version"] = get_active_model().version
+
+    ASSESSMENTS[assessment_id] = ch_dict
+
+    # Persist in SQLite
+    db.save_problem({
+        "id": ch_dict.get("challenge_id", challenge_id),
+        "title": ch_dict["title"],
+        "description": ch_dict.get("overview") or ch_dict.get("task") or "",
+        "difficulty": ch_dict["difficulty"],
+        "concepts": [],
+        "algorithm_family": "General",
+        "constraints": ch_dict.get("constraints", []),
+        "reference_solution": ch_dict.get("reference_solution", ""),
+        "tests": ch_dict.get("tests", []),
+        "starter_code": ch_dict.get("starter_code", ""),
+        "version": "1.0",
+    })
+    db.create_assessment(
+        assessment_id=assessment_id,
+        candidate_id=f"cand-{assessment_id[:8]}",
+        problem_id=ch_dict.get("challenge_id", challenge_id),
+        calibration_version=get_active_model().version,
     )
-    asm = create_assessment(req)
+
+    return ch_dict
+
+
+@app.get("/api/assessments/{assessment_id}")
+def legacy_get_assessment(assessment_id: str) -> Dict[str, Any]:
+    if assessment_id in ASSESSMENTS:
+        return ASSESSMENTS[assessment_id]
+    db_asm = db.get_assessment(assessment_id)
+    if not db_asm:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found.")
+
+    prob = db.get_problem(db_asm["problem_id"]) or {}
+    res = db.get_result(assessment_id)
     return {
-        "assessment_id": asm.id,
-        "challenge_id": asm.problem.id,
-        "skill": payload.get("skill", "Python"),
-        "difficulty": asm.problem.difficulty,
-        "title": asm.problem.title,
-        "overview": asm.problem.description,
-        "task": f"Implement `solve(...)` to handle {asm.problem.title}.",
-        "constraints": asm.problem.constraints,
-        "starter_code": asm.problem.starter_code,
-        "starterCode": asm.problem.starter_code,
-        "calibration_version": asm.calibration_version,
+        "assessment_id": assessment_id,
+        "challenge_id": prob.get("id", ""),
+        "skill": "Python",
+        "difficulty": prob.get("difficulty", "intermediate"),
+        "title": prob.get("title", "Assessment"),
+        "overview": prob.get("description", ""),
+        "task": prob.get("description", ""),
+        "constraints": prob.get("constraints", []),
+        "starter_code": prob.get("starter_code", ""),
+        "examples": [],
+        "evaluation": res.get("breakdown") if res else None,
+        "calibration_version": db_asm.get("calibration_version", "v1.0"),
     }
 
 
 @app.post("/api/assessments/{assessment_id}/submit")
-def legacy_submit_assessment(assessment_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    req = SubmissionRequest(
-        solution=payload.get("solution", ""),
-        time_taken=float(payload.get("time_elapsed_seconds") or payload.get("time_taken") or 0.0),
-    )
-    result = submit_solution(assessment_id, req)
-    return {
+def legacy_submit_assessment(assessment_id: str, payload: SolutionSubmitRequest) -> Dict[str, Any]:
+    assessment = ASSESSMENTS.get(assessment_id)
+    db_asm = db.get_assessment(assessment_id)
+    if assessment is None and db_asm is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found.")
+
+    provider = os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower()
+    ch_text = ""
+    if assessment:
+        ch_text = f"{assessment.get('overview', '')}\n\nTask:\n{assessment.get('task', '')}\n\nConstraints:\n" + "\n".join(assessment.get("constraints", []))
+
+    try:
+        eval_raw = evaluate_solution(
+            challenge=ch_text,
+            solution=payload.solution,
+            skill=assessment.get("skill", "Python") if assessment else "Python",
+        )
+    except Exception as error:
+        if provider == "gemini":
+            raise _gemini_error(error)
+        from services.demo_provider import evaluate_solution as evaluate_demo_solution
+
+        eval_raw = evaluate_demo_solution(challenge=ch_text, solution=payload.solution, skill="Python")
+
+    from normalizers import normalize_evaluation
+
+    eval_dict = normalize_evaluation(eval_raw).model_dump()
+
+    prob = None
+    if db_asm:
+        prob = db.get_problem(db_asm["problem_id"])
+    elif assessment and assessment.get("tests"):
+        prob = assessment
+
+    if prob and prob.get("tests"):
+        try:
+            exec_res = execute_solution_tests(payload.solution, prob["tests"], timeout_seconds=3.0)
+            if exec_res.get("tests_total", 0) > 0:
+                eval_dict["passed_tests"] = exec_res.get("tests_passed", 0)
+                eval_dict["total_tests"] = exec_res.get("tests_total", 0)
+        except Exception:
+            pass
+
+    out = {
         "assessment_id": assessment_id,
-        "evaluation": {
-            "overall_score": result.overall_score,
-            "correctness": round(result.tests_passed / max(1, result.tests_total) * 100.0, 1),
-            "problem_solving": result.breakdown.problem_solving,
-            "code_quality": result.breakdown.code_quality,
-            "efficiency": result.breakdown.efficiency,
-            "algorithmic_thinking": result.breakdown.algorithmic_thinking,
-            "tests_passed": result.tests_passed,
-            "tests_total": result.tests_total,
-            "runtime": result.runtime,
-            "problem_version": result.problem_version,
-            "calibration_version": result.calibration_version,
-            "evaluation_model_version": result.evaluation_model_version,
-            "summary": f"Passed {result.tests_passed}/{result.tests_total} tests in {result.runtime}s. Verified score: {result.overall_score}/100.",
-        },
+        "evaluation": eval_dict,
+        "submitted_solution": payload.solution,
+        "time_elapsed_seconds": payload.time_elapsed_seconds,
     }
+    if assessment:
+        assessment.update(out)
+        ASSESSMENTS[assessment_id] = assessment
+    return out
 
 
-@app.get("/api/passport")
-def legacy_get_passport() -> Dict[str, Any]:
-    # Return passport for latest assessment
+@app.post("/api/evaluate")
+def legacy_evaluate(payload: EvaluationRequest) -> Dict[str, Any]:
+    return legacy_submit_assessment(payload.assessment_id, payload)
+
+
+@app.get("/api/passport", response_model=PassportResponse)
+def legacy_get_passport() -> PassportResponse:
+    # Check in-memory ASSESSMENTS
+    for asm_id, asm in reversed(list(ASSESSMENTS.items())):
+        if isinstance(asm, dict) and asm.get("evaluation"):
+            ev = asm["evaluation"]
+            score = ev.get("overall_score", 0) if isinstance(ev, dict) else 0
+            return PassportResponse(
+                assessment_id=asm_id,
+                skill=asm.get("skill", "Python"),
+                difficulty=asm.get("difficulty", "intermediate"),
+                overall_score=int(score),
+                verified=bool(score >= 70),
+                summary=ev.get("summary", "Evaluation complete.") if isinstance(ev, dict) else "Verified assessment.",
+            )
+
+    # Check database
     active_obs = db.get_calibration_observations(limit=1)
-    if not active_obs:
-        return {"error": "No assessments completed yet."}
-    cand_results = db.get_candidate_results(active_obs[0]["assessment_id"])
-    if not cand_results:
-        # Fallback to direct assessment id lookup
-        return get_skill_passport(active_obs[0]["assessment_id"])
-    return get_skill_passport(cand_results[0]["candidate_id"])
+    if active_obs:
+        cand_results = db.get_candidate_results(active_obs[0]["assessment_id"])
+        if cand_results:
+            latest = cand_results[0]
+            return PassportResponse(
+                assessment_id=latest["assessment_id"],
+                skill="Python",
+                difficulty=latest.get("difficulty", "intermediate"),
+                overall_score=int(latest["overall_score"]),
+                verified=bool(latest["overall_score"] >= 70),
+                summary=f"Verified with score {latest['overall_score']}/100.",
+            )
+
+    return PassportResponse(
+        assessment_id="none",
+        skill="Python",
+        difficulty="intermediate",
+        overall_score=0,
+        verified=False,
+        summary="No completed assessments yet.",
+    )
 
 
-# Mount frontend static files
+# ---------------------------------------------------------------------------
+# Static Frontend Serving
+# ---------------------------------------------------------------------------
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 if not FRONTEND_DIR.exists():
     FRONTEND_DIR = Path(__file__).resolve().parent.parent / "skillproof_project" / "frontend"

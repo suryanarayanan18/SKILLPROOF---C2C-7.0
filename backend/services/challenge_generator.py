@@ -250,6 +250,9 @@ def generate_challenge(
     skill: str = "python",
     difficulty: str = "intermediate",
     seed_problem_id: Optional[str] = None,
+    previous_performance: Optional[Any] = None,
+    target_weakness: Optional[Any] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """
     Produces a transformed, distinct challenge from the seeded corpus.
