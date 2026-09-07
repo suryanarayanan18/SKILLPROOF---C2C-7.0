@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="en" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intelligence Designed To Evolve</title>
+  <title>SkillProof — Proof, Not Paper</title>
 
   <!-- Google Fonts: Inter (400, 500, 600) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,9 +51,13 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-sans);
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       user-select: none;
@@ -59,8 +65,10 @@
 
     /* Video Background */
     .bg {
-      position: absolute;
+      position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: #000;
       z-index: 0;
@@ -81,6 +89,8 @@
     .bg-overlay {
       position: absolute;
       inset: 0;
+      width: 100%;
+      height: 100%;
       background: radial-gradient(circle at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.65) 100%);
       pointer-events: none;
       z-index: 0;
@@ -90,14 +100,17 @@
     .page {
       position: relative;
       z-index: 1;
+      width: 100%;
       height: 100vh;
       height: 100dvh;
+      min-height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: clamp(16px, 2.4vh, 28px) clamp(14px, 3vw, 32px);
+      padding: 24px 20px;
       overflow: hidden;
+      box-sizing: border-box;
     }
 
     /* Entrance keyframes */
@@ -167,15 +180,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: clamp(18px, 2.8vw, 28px);
+      gap: 20px;
       flex-shrink: 0;
       animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
       z-index: 10;
     }
 
     .logo-btn {
-      width: clamp(40px, 4.4vw, 46px);
-      height: clamp(40px, 4.4vw, 46px);
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: #ffffff;
       box-shadow: var(--nav-shadow);
@@ -202,28 +215,28 @@
 
     /* Desktop Navigation Pill */
     .nav-pill {
-      height: clamp(44px, 5.2vw, 48px);
-      max-width: 430px;
+      height: 48px;
+      max-width: 440px;
       flex: 1;
       background: #ffffff;
       box-shadow: var(--nav-shadow);
       border-radius: 999px;
-      padding: 4px 8px;
+      padding: 4px 12px;
       display: flex;
       align-items: center;
       justify-content: space-around;
-      gap: 2px;
+      gap: 4px;
     }
 
     .nav-link {
       position: relative;
       text-decoration: none;
-      font-size: clamp(13px, 1.4vw, 15px);
+      font-size: 14px;
       font-weight: 500;
       letter-spacing: -0.01em;
       color: var(--nav-text);
-      opacity: 0.5;
-      padding: 8px 12px;
+      opacity: 0.55;
+      padding: 8px 14px;
       transition: opacity 0.2s ease, transform 0.2s ease;
       cursor: pointer;
       display: inline-flex;
@@ -232,7 +245,7 @@
     }
 
     .nav-link:hover {
-      opacity: 0.75;
+      opacity: 0.85;
     }
 
     .nav-link.active {
@@ -254,16 +267,16 @@
 
     /* Desktop Sign In Pill */
     .sign-in-btn {
-      height: clamp(44px, 5.2vw, 48px);
+      height: 48px;
       background: var(--pill-dark);
       color: var(--sign-in-text);
       box-shadow: var(--nav-shadow);
       border-radius: 999px;
-      padding: 0 clamp(18px, 2.2vw, 24px);
+      padding: 0 24px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(13px, 1.4vw, 15px);
+      font-size: 14px;
       font-weight: 500;
       text-decoration: none;
       border: none;
@@ -419,18 +432,19 @@
 
     /* Headline */
     .headline-container {
-      margin-bottom: clamp(14px, 2.2vh, 22px);
+      margin-bottom: 20px;
     }
 
     .headline {
       font-family: var(--font-display);
       color: #ffffff; /* Solid white: NO gradient, NO shimmer */
-      font-size: clamp(28px, 6.2vw, 80px);
+      font-size: 72px;
       letter-spacing: -0.04em;
       line-height: 1.12;
       text-transform: none;
-      white-space: nowrap;
-      overflow: hidden;
+      white-space: normal;
+      overflow: visible;
+      text-align: center;
     }
 
     .headline-line {
@@ -449,13 +463,15 @@
 
     /* Subhead */
     .subhead {
-      max-width: min(500px, 92%);
-      margin: 0 auto clamp(18px, 2.8vh, 32px);
-      font-size: clamp(calc(13.5px + 2pt), calc(1.55vw + 2pt), calc(16.5px + 2pt));
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto 28px;
+      font-size: 17px;
       color: #d0d0d0;
-      opacity: 0.8;
+      opacity: 0.85;
       line-height: 1.55;
       font-weight: 400;
+      text-align: center;
       --d: 0.28s;
     }
 
@@ -466,9 +482,9 @@
       justify-content: center;
       background: #ffffff;
       color: #000000;
-      font-size: clamp(13.5px, 1.5vw, 14.5px);
+      font-size: 15px;
       font-weight: 600;
-      padding: clamp(11px, 1.6vh, 13px) clamp(22px, 3vw, 28px);
+      padding: 13px 30px;
       border-radius: 999px;
       text-decoration: none;
       cursor: pointer;
@@ -627,6 +643,17 @@
     }
 
     /* Media query breakpoints */
+    @media (max-width: 860px) {
+      .headline {
+        font-size: 56px;
+        letter-spacing: -0.04em;
+      }
+      .subhead {
+        font-size: 16px;
+        max-width: 480px;
+      }
+    }
+
     @media (max-width: 720px) {
       .header {
         justify-content: space-between;
@@ -639,8 +666,8 @@
       }
 
       .logo-btn {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
       }
 
       .burger-btn {
@@ -648,44 +675,50 @@
       }
 
       .headline {
-        letter-spacing: -0.08em;
-        line-height: 1.05;
+        font-size: 44px;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
       }
 
-      .stats-footer {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px 24px;
+      .subhead {
+        font-size: 15px;
+        margin-bottom: 24px;
+      }
+
+      .page {
+        padding: 16px;
       }
     }
 
-    @media (max-width: 420px) {
-      :root {
-        --trust-size: 34px;
-      }
-
-      .trust-pill {
-        font-size: 12px;
-      }
-
+    @media (max-width: 480px) {
       .headline {
-        letter-spacing: -0.09em;
-        line-height: 1.04;
+        font-size: 34px;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+      }
+
+      .subhead {
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+
+      .cta-btn {
+        font-size: 14px;
+        padding: 12px 24px;
       }
     }
 
     @media (max-height: 700px) {
       .page {
-        padding-top: 12px;
-        padding-bottom: 12px;
-      }
-      .trust-row {
-        margin-bottom: 10px;
+        padding-top: 14px;
+        padding-bottom: 14px;
       }
       .headline-container {
-        margin-bottom: 8px;
+        margin-bottom: 12px;
       }
       .subhead {
-        margin-bottom: 14px;
+        margin-bottom: 18px;
       }
     }
 
