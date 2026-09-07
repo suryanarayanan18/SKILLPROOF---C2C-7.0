@@ -148,6 +148,11 @@
       return request(`/api/passport/${encodeURIComponent(candId)}`);
     },
 
+    async getHistory(candidateId) {
+      const candId = candidateId || window.SkillProofFlow?.getCandidateId?.() || "all";
+      return request(`/api/history/${encodeURIComponent(candId)}`);
+    },
+
     async getCalibrationStatus() {
       return request("/api/calibration/status");
     },

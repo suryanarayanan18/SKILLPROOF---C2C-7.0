@@ -345,6 +345,45 @@ def get_candidate_results(candidate_id: str) -> List[Dict[str, Any]]:
     return results
 
 
+def get_candidate_history(candidate_id: str) -> List[Dict[str, Any]]:
+    """Retrieves full assessment history with joined problem and result info for a candidate."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if candidate_id in ("all", "latest", "default", ""):
+        cursor.execute(
+            """
+            SELECT a.id as assessment_id, a.candidate_id, a.problem_id, a.calibration_version,
+                   a.started_at, a.submitted_at,
+                   p.title as problem_title, p.difficulty, p.algorithm_family,
+                   r.tests_passed, r.tests_total, r.runtime, r.memory, r.time_taken,
+                   r.overall_score, r.evaluation_model_version
+            FROM assessments a
+            JOIN problems p ON a.problem_id = p.id
+            LEFT JOIN results r ON a.id = r.assessment_id
+            ORDER BY a.started_at DESC
+            """
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT a.id as assessment_id, a.candidate_id, a.problem_id, a.calibration_version,
+                   a.started_at, a.submitted_at,
+                   p.title as problem_title, p.difficulty, p.algorithm_family,
+                   r.tests_passed, r.tests_total, r.runtime, r.memory, r.time_taken,
+                   r.overall_score, r.evaluation_model_version
+            FROM assessments a
+            JOIN problems p ON a.problem_id = p.id
+            LEFT JOIN results r ON a.id = r.assessment_id
+            WHERE a.candidate_id = ?
+            ORDER BY a.started_at DESC
+            """,
+            (candidate_id,),
+        )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def observation_exists_for_assessment(assessment_id: str) -> bool:
     """Checks if a calibration observation already exists for the given assessment."""
     conn = get_db_connection()

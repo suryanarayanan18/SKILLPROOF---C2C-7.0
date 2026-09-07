@@ -393,6 +393,18 @@ def get_skill_passport(candidate_id: str) -> SkillPassportResponse:
     )
 
 
+@app.get("/api/history/{candidate_id}")
+def get_candidate_history_endpoint(candidate_id: str) -> List[Dict[str, Any]]:
+    """Returns assessment history for the given candidate from the database."""
+    return db.get_candidate_history(candidate_id)
+
+
+@app.get("/api/history")
+def get_all_history_endpoint() -> List[Dict[str, Any]]:
+    """Returns all assessment history records from the database."""
+    return db.get_candidate_history("all")
+
+
 @app.post("/api/calibration/observation", status_code=status.HTTP_201_CREATED)
 def store_calibration_observation(payload: CalibrationObservationRequest) -> Dict[str, Any]:
     """Manually ingests an externally validated observation into the learning pool."""

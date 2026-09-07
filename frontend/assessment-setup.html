@@ -307,7 +307,7 @@
     (function() {
       // Sync blueprint with active challenge
       if (window.SkillProofFlow) {
-        const challenge = SkillProofFlow.getActiveChallenge();
+        const challenge = (typeof SkillProofFlow.getActiveChallenge === 'function' ? SkillProofFlow.getActiveChallenge() : (typeof SkillProofFlow.getStoredAssessment === 'function' ? SkillProofFlow.getStoredAssessment() : null)) || {};
         const skillKey = SkillProofFlow.getSkill();
         const diffKey = SkillProofFlow.getDifficulty();
         
@@ -315,24 +315,31 @@
         if (idEl && challenge.id) idEl.textContent = 'ID: ' + challenge.id;
         
         const domainEl = document.getElementById('setup-skill-domain');
-        if (domainEl) domainEl.textContent = challenge.title ? `${challenge.title} (${challenge.difficulty})` : skillKey;
+        if (domainEl) domainEl.textContent = challenge.title ? `${challenge.title} (${challenge.difficulty})` : (skillKey.toUpperCase() + ' // Algorithmic');
 
         const diffEl = document.getElementById('setup-diff-duration');
-        if (diffEl) diffEl.textContent = `${challenge.difficulty || diffKey} (~${challenge.duration || '20 min'})`;
+        if (diffEl) diffEl.textContent = `${challenge.difficulty || diffKey} (~20 min)`;
       }
 
       const btn = document.getElementById('start-challenge-btn');
       if (btn) {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
           btn.innerHTML = '<span class="material-symbols-outlined text-[22px] animate-spin">sync</span><span>Spinning Sandbox Engine...</span>';
           btn.classList.add('pointer-events-none', 'opacity-80');
           try {
+            // Fresh attempt state
+            localStorage.removeItem('skillproof_solution_code');
+            sessionStorage.removeItem('skillproof_started_at');
+
             const assessment = await SkillProofApi.createAssessment({
               skill: SkillProofFlow.getSkill(),
               difficulty: SkillProofFlow.getDifficulty(),
             });
+            const assessmentId = assessment.assessment_id || assessment.id;
             SkillProofFlow.setAssessment(assessment);
-            window.location.href = 'workspace.html';
+            sessionStorage.setItem('skillproof_started_at', Date.now());
+            window.location.href = `workspace.html?id=${encodeURIComponent(assessmentId)}`;
           } catch (error) {
             btn.classList.remove('pointer-events-none', 'opacity-80');
             btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">play_arrow</span><span>Begin Challenge</span>';

@@ -61,6 +61,10 @@ const SkillProofFlow = {
     }
   },
 
+  getActiveChallenge() {
+    return this.getStoredAssessment() || {};
+  },
+
   getSolutionCode() {
     return localStorage.getItem("skillproof_solution_code") || null;
   },

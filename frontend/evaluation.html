@@ -519,7 +519,8 @@
 <script src="js/api.js"></script>
 <script>
   (async function() {
-    const assessmentId = window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const assessmentId = urlParams.get('id') || urlParams.get('assessment_id') || (window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null);
     if (!assessmentId) {
       const heading = document.querySelector('h1');
       if (heading) heading.textContent = 'No Assessment Selected';

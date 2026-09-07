@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;family=Geist:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -66,6 +67,54 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0A0A0B] text-[#F5F3F3] selection:bg-[#B86A73]/30 selection:text-white antialiased">
 
+  <!-- FIXED SIDEBAR -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-[#111012]/95 backdrop-blur-xl z-50 hidden lg:flex flex-col justify-between p-6 border-r border-white/5 shadow-2xl">
+    <div class="flex flex-col gap-8">
+      <div class="flex items-center gap-3 px-1">
+        <div class="w-8 h-8 rounded-lg bg-[#151315] border border-white/10 flex items-center justify-center relative overflow-hidden shadow-inner">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#8A4D5D]/40 via-transparent to-[#D47A68]/30"></div>
+          <svg class="w-4 h-4 text-[#F5F3F3] relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight text-white">SkillProof</span>
+      </div>
+      <nav class="flex flex-col gap-1.5">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="home" href="index.html">
+          <span class="material-symbols-outlined text-[20px]">grid_view</span>
+          <span>Home</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="assessments" href="skill-selection.html">
+          <span class="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+          <span>Assessments</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="history" href="history.html">
+          <span class="material-symbols-outlined text-[20px]">history</span>
+          <span>Assessment History</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="skill-passport" href="passport.html">
+          <span class="material-symbols-outlined text-[20px]">verified</span>
+          <span>Skill Passport</span>
+        </a>
+      </nav>
+    </div>
+    <div class="flex flex-col gap-4">
+      <nav class="flex flex-col">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="settings" href="history.html">
+          <span class="material-symbols-outlined text-[20px]">history</span>
+          <span>History</span>
+        </a>
+      </nav>
+      <div class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
+        <span class="w-2 h-2 rounded-full bg-[#B86A73] animate-pulse"></span>
+        <span class="text-[11px] font-mono text-[#C8C1C3] uppercase tracking-wider">Node v4.1 Active</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lg:pl-64 flex-1 flex flex-col min-h-screen">
   <!-- TOP BAR -->
   <header class="h-14 border-b border-[rgba(255,255,255,0.07)] bg-[#111012]/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 sticky top-0">
     <div class="flex items-center gap-3 sm:gap-4">
@@ -495,7 +544,8 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
 
     // Load active challenge into workspace
     document.addEventListener("DOMContentLoaded", async () => {
-      const assessmentId = window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null;
+      const urlParams = new URLSearchParams(window.location.search);
+      const assessmentId = urlParams.get('id') || urlParams.get('assessment_id') || (window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null);
       try {
         if (assessmentId) {
           activeChallenge = await SkillProofApi.getAssessment(assessmentId);
@@ -637,7 +687,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
 
         // Navigate to evaluation after short delay to view final report
         setTimeout(() => {
-          window.location.href = 'evaluation.html';
+          window.location.href = `evaluation.html?id=${encodeURIComponent(assessmentId)}`;
         }, 800);
       } catch (error) {
         overlay.classList.add('hidden');
@@ -709,4 +759,5 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
     }, 1000);
     sessionStorage.setItem('skillproof_started_at', sessionStorage.getItem('skillproof_started_at') || Date.now());
   </script>
+</div>
 </body></html>
