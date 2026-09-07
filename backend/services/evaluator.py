@@ -2,7 +2,7 @@
 
 import os
 
-from services.gemini import generate_text
+from services.ai_provider import generate_text
 
 
 def evaluate_solution(
@@ -11,19 +11,10 @@ def evaluate_solution(
     skill: str = "Python",
     difficulty: str | None = None,
 ) -> str:
-    """
-    Evaluate a candidate's solution against a generated challenge.
+    """Evaluate a candidate solution using the selected AI provider."""
 
-    Returns an AI-generated evaluation containing:
-    - correctness
-    - problem solving
-    - code quality
-    - understanding
-    - overall score
-    - feedback
-    """
-
-    if os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower() in {"mock", "demo"}:
+    provider = os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower()
+    if provider in {"mock", "demo"}:
         from services.demo_provider import evaluate_solution as evaluate_demo_solution
 
         return evaluate_demo_solution(challenge=challenge, solution=solution, skill=skill, difficulty=difficulty)
@@ -36,6 +27,9 @@ The goal is to evaluate REAL ability rather than certificates.
 
 SKILL:
 {skill}
+
+DIFFICULTY:
+{difficulty or 'beginner'}
 
 CHALLENGE:
 {challenge}
@@ -50,7 +44,8 @@ IMPORTANT:
 - Check whether the solution actually solves the stated problem.
 - Consider edge cases.
 - Evaluate the candidate's reasoning and implementation quality.
-- Be fair to a beginner/intermediate/advanced candidate depending on the challenge.
+- Be fair to the selected difficulty.
+- The actual execution results must shape the score. If tests fail, the correctness score should be reduced.
 - Do not invent requirements that were not present in the challenge.
 
 Return ONLY a JSON object with overall_score, correctness, problem_solving,

@@ -98,40 +98,25 @@
       return request("/api/challenges", {
         method: "POST",
         body: JSON.stringify({ skill, difficulty, previous_performance: previousPerformance || null, target_weakness: targetWeakness || null }),
-      }).catch((error) => {
-        if (!shouldUseDemo(error)) throw error;
-        const assessment = demoAssessment();
-        window.SkillProofFlow?.setAssessment?.(assessment);
-        return assessment;
       });
     },
     getAssessment(assessmentId) {
-      return request(`/api/assessments/${encodeURIComponent(assessmentId)}`).catch((error) => {
-        const stored = window.SkillProofFlow?.getStoredAssessment?.();
-        if (shouldUseDemo(error) && stored?.assessment_id === assessmentId) return stored;
-        throw error;
+      return request(`/api/assessments/${encodeURIComponent(assessmentId)}`);
+    },
+    executeAssessment(assessmentId, { code, language = "python" } = {}) {
+      return request("/api/execute", {
+        method: "POST",
+        body: JSON.stringify({ assessment_id: assessmentId, code, language }),
       });
     },
     submitSolution(assessmentId, { solution, timeElapsedSeconds } = {}) {
       return request(`/api/assessments/${encodeURIComponent(assessmentId)}/submit`, {
         method: "POST",
         body: JSON.stringify({ solution, time_elapsed_seconds: timeElapsedSeconds ?? null }),
-      }).catch((error) => {
-        if (!shouldUseDemo(error)) throw error;
-        const stored = window.SkillProofFlow?.getStoredAssessment?.() || demoAssessment();
-        const assessment = { ...stored, evaluation: demoEvaluation(solution, stored), submitted_solution: solution, time_elapsed_seconds: timeElapsedSeconds ?? null };
-        window.SkillProofFlow?.setAssessment?.(assessment);
-        return assessment;
       });
     },
     getPassport() {
-      return request("/api/passport").catch((error) => {
-        const stored = window.SkillProofFlow?.getStoredAssessment?.();
-        if (shouldUseDemo(error) && stored?.evaluation) {
-          return { assessment_id: stored.assessment_id, skill: stored.skill || "Python", difficulty: stored.difficulty || "beginner", overall_score: stored.evaluation.overall_score, verified: stored.evaluation.overall_score >= 75, summary: stored.evaluation.summary };
-        }
-        throw error;
-      });
+      return request("/api/passport");
     },
   };
 })();

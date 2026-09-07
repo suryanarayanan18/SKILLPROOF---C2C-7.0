@@ -581,15 +581,33 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       document.getElementById('eval-overlay').classList.add('hidden');
     }
 
-    function runLocalTests() {
+    async function runLocalTests() {
       const btn = document.getElementById('btn-run');
       const original = btn.innerHTML;
+      const editorEl = document.getElementById('code-input');
+      const assessmentId = SkillProofFlow.getAssessmentId();
+      if (!editorEl || !assessmentId) {
+        showSubmissionError('Start a challenge before running the sandbox.');
+        return;
+      }
       btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Testing sandbox...';
-      setTimeout(() => {
-        btn.innerHTML = original;
+      btn.disabled = true;
+      try {
+        const result = await SkillProofApi.executeAssessment(assessmentId, { code: editorEl.value, language: 'python' });
         const statusText = document.getElementById('test-status-text');
-        statusText.textContent = '3 / 3 Passing (All hermetic constraints met)';
-      }, 650);
+        if (statusText) {
+          statusText.textContent = `${result.passed} / ${result.total} Passing (${result.success ? 'All hermetic constraints met' : 'Fix the failing checks'})`;
+        }
+        const panel = document.getElementById('challenge-status');
+        if (panel) panel.textContent = result.success ? 'Sandbox validation succeeded.' : 'Sandbox validation found failing checks.';
+      } catch (error) {
+        const statusText = document.getElementById('test-status-text');
+        if (statusText) statusText.textContent = 'Sandbox execution failed';
+        showSubmissionError(SkillProofApi.formatError(error));
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
     }
 
     function resetTemplate() {

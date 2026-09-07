@@ -7,24 +7,27 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Body, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 
-from normalizers import normalize_challenge, normalize_evaluation
+from normalizers import normalize_evaluation
 from schemas import (
     AssessmentResponse,
     ChallengeCreateRequest,
+    ChallengePayload,
     ChallengeResponse,
     EvaluationRequest,
+    ExecutionRequest,
+    ExecutionResponse,
     HealthResponse,
     PassportResponse,
     SolutionSubmitRequest,
 )
 from services.challenge_generator import generate_challenge
-from services.demo_provider import generate_challenge as generate_demo_challenge
-from services.demo_provider import evaluate_solution as evaluate_demo_solution
 from services.evaluator import evaluate_solution
+from services.executor import execute_code
 
 app = FastAPI(title="SkillProof API", version="0.1.0")
 logger = logging.getLogger("skillproof.api")
@@ -35,6 +38,25 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+
+def _openapi_with_null_challenge_context() -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        routes=app.routes,
+    )
+    example = schema["paths"]["/api/challenges"]["post"]["requestBody"]["content"]["application/json"]["examples"]["default"]["value"]
+    example["previous_performance"] = None
+    example["target_weakness"] = None
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _openapi_with_null_challenge_context
 
 # Deliberately process-local for the prototype. Restarting the server clears it.
 ASSESSMENTS: dict[str, AssessmentResponse] = {}
@@ -55,11 +77,27 @@ def _gemini_error(error: Exception) -> HTTPException:
 @app.get("/api/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     provider = os.getenv("SKILLPROOF_PROVIDER", "mock").strip().lower()
-    return HealthResponse(status="ok", service="skillproof-api", provider="gemini" if provider == "gemini" else "mock")
+    if provider not in {"mock", "gemini", "nvidia", "auto"}:
+        provider = "mock"
+    return HealthResponse(status="ok", service="skillproof-api", provider=provider)
 
 
 @app.post("/api/challenges", response_model=ChallengeResponse, status_code=status.HTTP_201_CREATED)
-def create_challenge(payload: ChallengeCreateRequest) -> ChallengeResponse:
+def create_challenge(
+    payload: ChallengeCreateRequest = Body(
+        openapi_examples={
+            "default": {
+                "summary": "New Python challenge",
+                "value": {
+                    "skill": "Python",
+                    "difficulty": "beginner",
+                    "previous_performance": None,
+                    "target_weakness": None,
+                },
+            }
+        }
+    ),
+) -> ChallengeResponse:
     try:
         generated = generate_challenge(
             skill=payload.skill,
@@ -68,19 +106,19 @@ def create_challenge(payload: ChallengeCreateRequest) -> ChallengeResponse:
             target_weakness=payload.target_weakness,
         )
     except Exception as error:
-        logger.exception("Challenge provider failed; using deterministic demo challenge.")
-        generated = generate_demo_challenge(
-            skill=payload.skill,
-            difficulty=payload.difficulty,
-        )
+        logger.exception("Challenge generation failed.")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Challenge provider is unavailable. No demo fallback is allowed for the configured provider.",
+        ) from error
 
     assessment_id = str(uuid4())
-    challenge = normalize_challenge(
-        generated,
+    challenge = ChallengeResponse(
         assessment_id=assessment_id,
-        challenge_id=f"challenge-{uuid4()}",
+        challenge_id=str(uuid4()),
         skill=payload.skill,
         difficulty=payload.difficulty,
+        **ChallengePayload.model_validate(generated).model_dump(),
     )
     ASSESSMENTS[assessment_id] = AssessmentResponse(**challenge.model_dump())
     return challenge
@@ -99,18 +137,36 @@ def submit_solution(assessment_id: str, payload: SolutionSubmitRequest) -> Asses
             difficulty=assessment.difficulty,
         )
     except Exception as error:
-        logger.exception("Evaluation provider failed; using deterministic local evaluation.")
-        generated = evaluate_demo_solution(
-            challenge=f"{assessment.overview}\n\nTask:\n{assessment.task}\n\nConstraints:\n" + "\n".join(assessment.constraints),
-            solution=payload.solution,
-            skill=assessment.skill,
-            difficulty=assessment.difficulty,
-        )
+        logger.exception("Evaluation provider failed.")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="AI evaluation failed. Please retry or fix the provider configuration.",
+        ) from error
 
     assessment.evaluation = normalize_evaluation(generated)
     assessment.submitted_solution = payload.solution
     assessment.time_elapsed_seconds = payload.time_elapsed_seconds
     return assessment
+
+
+@app.post("/api/execute", response_model=ExecutionResponse)
+def execute_assessment(payload: ExecutionRequest) -> ExecutionResponse:
+    assessment = ASSESSMENTS.get(payload.assessment_id)
+    if assessment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found.")
+    if payload.language != "python":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only Python execution is supported in this prototype.")
+
+    try:
+        return execute_code(
+            assessment_id=payload.assessment_id,
+            challenge=assessment,
+            code=payload.code,
+            language=payload.language,
+        )
+    except Exception as error:
+        logger.exception("Sandbox execution failed.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Execution failed: {error}") from error
 
 
 @app.post("/api/evaluate", response_model=AssessmentResponse)

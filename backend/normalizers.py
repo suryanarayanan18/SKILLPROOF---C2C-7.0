@@ -11,8 +11,10 @@ from schemas import ChallengeResponse, EvaluationResponse
 SECTION_PATTERN = re.compile(r"^([A-Z][A-Z _/]+):\s*$", re.MULTILINE)
 
 
-def _sections(text: str) -> dict[str, str]:
+def _sections(text: str | dict[str, object]) -> dict[str, str]:
     """Parse the documented `SECTION:` format without trusting it completely."""
+    if isinstance(text, dict):
+        return {}
     matches = list(SECTION_PATTERN.finditer(text or ""))
     result: dict[str, str] = {}
     for index, match in enumerate(matches):
@@ -21,8 +23,10 @@ def _sections(text: str) -> dict[str, str]:
     return result
 
 
-def _json_object(text: str) -> dict[str, object]:
+def _json_object(text: str | dict[str, object]) -> dict[str, object]:
     """Extract a JSON object from plain text or a fenced Gemini response."""
+    if isinstance(text, dict):
+        return text
     candidate = (text or "").strip()
     if candidate.startswith("```"):
         candidate = re.sub(r"^```(?:json)?\s*", "", candidate, flags=re.IGNORECASE)
@@ -51,7 +55,7 @@ def _score(sections: dict[str, str], key: str, default: int) -> int:
 
 
 def normalize_challenge(
-    text: str, *, assessment_id: str, challenge_id: str, skill: str, difficulty: str
+    text: str | dict[str, object], *, assessment_id: str, challenge_id: str, skill: str, difficulty: str
 ) -> ChallengeResponse:
     data = _json_object(text)
     sections = _sections(text)
