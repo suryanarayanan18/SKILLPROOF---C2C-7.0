@@ -1,0 +1,60 @@
+{
+  "id": "stack_syntax_validator",
+  "template_title": "{domain_title}: Structural Grammar Validation",
+  "template_description": "In a {domain_context}, validate structural syntax integrity. Given an expression string `expression`, determine whether all bracket characters '(', ')', '[', ']', '{', '}' are properly balanced and closed in valid hierarchical order. Characters other than brackets (alphanumerics, spaces, punctuation) may be present and should be ignored during bracket pairing. Return True if validly balanced, otherwise return False.",
+  "difficulty": "beginner",
+  "concepts": ["stacks", "strings", "parsing"],
+  "algorithm_family": "Stacks & Parsing",
+  "constraints": [
+    "0 <= len(expression) <= 50,000",
+    "Characters are ASCII printable"
+  ],
+  "starter_code": "def solve(expression: str) -> bool:\n    \"\"\"Return True if all brackets in the expression are properly balanced, else False.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "def solve(expression):\n    stack = []\n    matching = {')': '(', ']': '[', '}': '{'}\n    for ch in str(expression):\n        if ch in '([{':\n            stack.append(ch)\n        elif ch in ')]}':\n            if not stack or stack[-1] != matching[ch]:\n                return False\n            stack.pop()\n    return len(stack) == 0\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Configuration Parser",
+      "domain_context": "JSON/YAML nested configuration syntax analyzer",
+      "metric_name": "config token"
+    },
+    {
+      "domain_title": "SQL Query Filter Engine",
+      "domain_context": "database SQL WHERE-clause predicate validator",
+      "metric_name": "predicate clause"
+    },
+    {
+      "domain_title": "Compiler Syntax Tree",
+      "domain_context": "compiler front-end lexer token stream",
+      "metric_name": "syntax token"
+    }
+  ],
+  "parameter_ranges": {},
+  "fixed_tests": [
+    {
+      "name": "Simple balanced brackets",
+      "input": {"expression": "function(a[i], {x: 1})"},
+      "expected": true
+    },
+    {
+      "name": "Unmatched closing bracket",
+      "input": {"expression": "(a + b]"},
+      "expected": false
+    },
+    {
+      "name": "Unclosed opening bracket",
+      "input": {"expression": "{[()]"},
+      "expected": false
+    },
+    {
+      "name": "Empty string is valid",
+      "input": {"expression": ""},
+      "expected": true
+    },
+    {
+      "name": "No brackets only alphanumeric",
+      "input": {"expression": "x = 42 * y + 10"},
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "binary_search_threshold",
+  "template_title": "{domain_title}: Minimized Peak Allocation",
+  "template_description": "In a distributed {domain_context}, partition contiguous workloads across K worker threads. Given a list of positive integer processing times `workloads` and an integer `k` representing the maximum number of worker threads available, find the minimum possible maximum workload assigned to any single worker when workloads must be divided into at most K contiguous partitions.",
+  "difficulty": "advanced",
+  "concepts": ["binary-search", "greedy", "optimization", "arrays"],
+  "algorithm_family": "Binary Search & Optimization",
+  "constraints": [
+    "1 <= len(workloads) <= 50,000",
+    "1 <= k <= len(workloads)",
+    "1 <= workloads[i] <= 1,000,000"
+  ],
+  "starter_code": "from typing import List\n\ndef solve(workloads: List[int], k: int) -> int:\n    \"\"\"Find the minimum possible maximum contiguous workload sum across k partitions.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "def solve(workloads, k):\n    if not workloads:\n        return 0\n    if k >= len(workloads):\n        return max(workloads)\n    def feasible(max_load):\n        workers = 1\n        curr_load = 0\n        for w in workloads:\n            if curr_load + w > max_load:\n                workers += 1\n                curr_load = w\n                if workers > k:\n                    return False\n            else:\n                curr_load += w\n        return True\n    low, high = max(workloads), sum(workloads)\n    ans = high\n    while low <= high:\n        mid = (low + high) // 2\n        if feasible(mid):\n            ans = mid\n            high = mid - 1\n        else:\n            low = mid + 1\n    return ans\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Cluster Compute Balancing",
+      "domain_context": "distributed container batch processing scheduler",
+      "metric_name": "job compute cost"
+    },
+    {
+      "domain_title": "Database Shard Replication",
+      "domain_context": "database table partitioning controller",
+      "metric_name": "partition row count"
+    },
+    {
+      "domain_title": "Log File Archiver",
+      "domain_context": "cloud archive storage compressor",
+      "metric_name": "compressed chunk size"
+    }
+  ],
+  "parameter_ranges": {
+    "k_values": [2, 3, 5]
+  },
+  "fixed_tests": [
+    {
+      "name": "Even split into five workers",
+      "input": {"workloads": [1, 2, 3, 4, 5, 6, 7, 8, 9], "k": 5},
+      "expected": 11
+    },
+    {
+      "name": "Standard partition",
+      "input": {"workloads": [7, 2, 5, 10, 8], "k": 2},
+      "expected": 18
+    },
+    {
+      "name": "K equals length",
+      "input": {"workloads": [10, 20, 30], "k": 3},
+      "expected": 30
+    },
+    {
+      "name": "Single worker handles all",
+      "input": {"workloads": [5, 5, 5, 5], "k": 1},
+      "expected": 20
+    }
+  ]
+}

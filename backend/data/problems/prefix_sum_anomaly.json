@@ -1,0 +1,58 @@
+{
+  "id": "prefix_sum_anomaly",
+  "template_title": "{domain_title}: Subarray Target Matching",
+  "template_description": "In an analytical {domain_context}, count the number of continuous segments matching an exact target. Given a list of integer measurements `readings` and a target integer `target`, return the total number of continuous non-empty subarrays whose elements sum precisely to `target`.",
+  "difficulty": "intermediate",
+  "concepts": ["prefix-sums", "hash-maps", "arrays"],
+  "algorithm_family": "Prefix Sums & Hash Maps",
+  "constraints": [
+    "1 <= len(readings) <= 100,000",
+    "-50,000 <= readings[i] <= 50,000",
+    "-1,000,000 <= target <= 1,000,000"
+  ],
+  "starter_code": "from typing import List\n\ndef solve(readings: List[int], target: int) -> int:\n    \"\"\"Return the count of contiguous subarrays summing to target.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "def solve(readings, target):\n    prefix_counts = {0: 1}\n    curr_sum = 0\n    count = 0\n    for r in readings:\n        curr_sum += r\n        diff = curr_sum - target\n        if diff in prefix_counts:\n            count += prefix_counts[diff]\n        prefix_counts[curr_sum] = prefix_counts.get(curr_sum, 0) + 1\n    return count\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Energy Grid Consumption",
+      "domain_context": "smart grid load telemetry log",
+      "metric_name": "kilowatt variation"
+    },
+    {
+      "domain_title": "Financial Ledger Reconciliation",
+      "domain_context": "accounting balance transaction log",
+      "metric_name": "credit/debit delta"
+    },
+    {
+      "domain_title": "Network Error Flux",
+      "domain_context": "datacenter network packet log",
+      "metric_name": "dropped frame count"
+    }
+  ],
+  "parameter_ranges": {
+    "targets": [0, 5, 10]
+  },
+  "fixed_tests": [
+    {
+      "name": "Standard positive matches",
+      "input": {"readings": [1, 1, 1], "target": 2},
+      "expected": 2
+    },
+    {
+      "name": "Zero and negative matches",
+      "input": {"readings": [1, -1, 0], "target": 0},
+      "expected": 3
+    },
+    {
+      "name": "Multiple occurrences with target 7",
+      "input": {"readings": [3, 4, 7, 2, -3, 1, 4, 2], "target": 7},
+      "expected": 4
+    },
+    {
+      "name": "No match found",
+      "input": {"readings": [1, 2, 3], "target": 10},
+      "expected": 0
+    }
+  ]
+}

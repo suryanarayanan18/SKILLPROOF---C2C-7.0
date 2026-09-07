@@ -1,0 +1,63 @@
+{
+  "id": "array_frequency_k",
+  "template_title": "{domain_title}: Minimum Element with Frequency K",
+  "template_description": "In a {domain_context}, you are provided a list of {metric_name} observations and an integer threshold K. Return the smallest {metric_name} value whose occurrence frequency in the observations is at least K. If no such value meets or exceeds the frequency threshold, return -1.",
+  "difficulty": "intermediate",
+  "concepts": ["arrays", "hash-maps", "frequency-counting"],
+  "algorithm_family": "Arrays & Hashing",
+  "constraints": [
+    "1 <= len(items) <= 100,000",
+    "1 <= K <= len(items)",
+    "-1,000,000 <= items[i] <= 1,000,000"
+  ],
+  "starter_code": "from typing import List\n\ndef solve(items: List[int], k: int) -> int:\n    \"\"\"Return the smallest element with frequency >= k, or -1.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "from collections import Counter\n\ndef solve(items, k):\n    counts = Counter(items)\n    candidates = [val for val, count in counts.items() if count >= k]\n    return min(candidates) if candidates else -1\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Sensor Telemetry",
+      "domain_context": "high-frequency sensor telemetry stream",
+      "metric_name": "sensor reading"
+    },
+    {
+      "domain_title": "FinTech Audit",
+      "domain_context": "financial transaction batch",
+      "metric_name": "transaction amount"
+    },
+    {
+      "domain_title": "Inventory Analytics",
+      "domain_context": "warehouse fulfillment batch",
+      "metric_name": "item barcode"
+    }
+  ],
+  "parameter_ranges": {
+    "k_values": [2, 3, 4]
+  },
+  "fixed_tests": [
+    {
+      "name": "Single match",
+      "input": {"items": [4, 2, 5, 2, 8, 2, 9], "k": 3},
+      "expected": 2
+    },
+    {
+      "name": "Multiple matches select minimum",
+      "input": {"items": [7, 3, 7, 3, 9, 3, 7, 10], "k": 2},
+      "expected": 3
+    },
+    {
+      "name": "No match returns -1",
+      "input": {"items": [1, 2, 3, 4, 5], "k": 2},
+      "expected": -1
+    },
+    {
+      "name": "Negative values",
+      "input": {"items": [-5, -2, -5, 0, -2, -5], "k": 2},
+      "expected": -5
+    },
+    {
+      "name": "K equals 1 returns global min",
+      "input": {"items": [15, 42, 8, 99], "k": 1},
+      "expected": 8
+    }
+  ]
+}

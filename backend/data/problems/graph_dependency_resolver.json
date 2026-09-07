@@ -1,0 +1,68 @@
+{
+  "id": "graph_dependency_resolver",
+  "template_title": "{domain_title}: Dependency Resolution Engine",
+  "template_description": "In a {domain_context}, resolve a valid execution sequence. You are provided a list of unique task identifiers `tasks` and a list of directed dependency pairs `dependencies`, where [task_A, task_B] specifies that task_B must be completed before task_A can begin. Return a valid execution ordering of all tasks that respects all prerequisites. If multiple valid execution sequences exist, break ties by selecting lexicographically smaller task names first. If a circular dependency makes execution impossible, return an empty list [].",
+  "difficulty": "advanced",
+  "concepts": ["graphs", "topological-sort", "priority-queues", "cycle-detection"],
+  "algorithm_family": "Graphs & Topological Sort",
+  "constraints": [
+    "1 <= len(tasks) <= 1,000",
+    "0 <= len(dependencies) <= 5,000",
+    "Task names are alphanumeric non-empty strings"
+  ],
+  "starter_code": "from typing import List\n\ndef solve(tasks: List[str], dependencies: List[List[str]]) -> List[str]:\n    \"\"\"Return the lexicographically-first valid topological sort, or [] if cycle detected.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "from collections import defaultdict\nimport heapq\n\ndef solve(tasks, dependencies):\n    adj = defaultdict(list)\n    in_degree = {t: 0 for t in tasks}\n    for task, prereq in dependencies:\n        if task in in_degree and prereq in in_degree:\n            adj[prereq].append(task)\n            in_degree[task] += 1\n    heap = [t for t, deg in in_degree.items() if deg == 0]\n    heapq.heapify(heap)\n    order = []\n    while heap:\n        curr = heapq.heappop(heap)\n        order.append(curr)\n        for neighbor in adj[curr]:\n            in_degree[neighbor] -= 1\n            if in_degree[neighbor] == 0:\n                heapq.heappush(heap, neighbor)\n    return order if len(order) == len(tasks) else []\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Build Artifact Pipeline",
+      "domain_context": "software compilation build system",
+      "metric_name": "build target"
+    },
+    {
+      "domain_title": "Database Schema Migrations",
+      "domain_context": "database migration runner",
+      "metric_name": "migration script"
+    },
+    {
+      "domain_title": "Microservice Boot Sequence",
+      "domain_context": "container cluster orchestration manager",
+      "metric_name": "service container"
+    }
+  ],
+  "parameter_ranges": {},
+  "fixed_tests": [
+    {
+      "name": "Linear chain dependency",
+      "input": {
+        "tasks": ["build", "test", "deploy"],
+        "dependencies": [["test", "build"], ["deploy", "test"]]
+      },
+      "expected": ["build", "test", "deploy"]
+    },
+    {
+      "name": "Branching diamond with lexicographical tie-break",
+      "input": {
+        "tasks": ["A", "B", "C", "D"],
+        "dependencies": [["B", "A"], ["C", "A"], ["D", "B"], ["D", "C"]]
+      },
+      "expected": ["A", "B", "C", "D"]
+    },
+    {
+      "name": "Circular dependency returns empty",
+      "input": {
+        "tasks": ["X", "Y"],
+        "dependencies": [["X", "Y"], ["Y", "X"]]
+      },
+      "expected": []
+    },
+    {
+      "name": "Independent tasks lexicographical order",
+      "input": {
+        "tasks": ["delta", "alpha", "gamma", "beta"],
+        "dependencies": []
+      },
+      "expected": ["alpha", "beta", "delta", "gamma"]
+    }
+  ]
+}

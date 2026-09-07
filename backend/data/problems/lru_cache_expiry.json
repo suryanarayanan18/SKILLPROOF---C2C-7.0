@@ -1,0 +1,84 @@
+{
+  "id": "lru_cache_expiry",
+  "template_title": "{domain_title}: Bounded Eviction Engine",
+  "template_description": "In a {domain_context}, manage a bounded key-value cache of fixed capacity. Process a sequential list of operations where each operation is either ['PUT', key, value] or ['GET', key]. For 'PUT', insert or update the value; if capacity is exceeded, evict the least-recently accessed key. For 'GET', access the key (marking it recently used) and record its value, or record None if the key does not exist. Return the list of results corresponding to all 'GET' operations.",
+  "difficulty": "intermediate",
+  "concepts": ["hash-maps", "linked-lists", "data-structures", "caching"],
+  "algorithm_family": "Data Structures & Caching",
+  "constraints": [
+    "1 <= capacity <= 5,000",
+    "1 <= len(operations) <= 20,000",
+    "keys and values are non-empty strings or integers"
+  ],
+  "starter_code": "from typing import List, Any\n\ndef solve(operations: List[List[Any]], capacity: int) -> List[Any]:\n    \"\"\"Simulate LRU cache operations and return the list of GET results.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "from collections import OrderedDict\n\ndef solve(operations, capacity):\n    cache = OrderedDict()\n    results = []\n    for op in operations:\n        action = op[0]\n        key = op[1]\n        if action == 'PUT':\n            val = op[2]\n            if key in cache:\n                cache.move_to_end(key)\n            elif len(cache) >= capacity:\n                cache.popitem(last=False)\n            cache[key] = val\n        elif action == 'GET':\n            if key in cache:\n                cache.move_to_end(key)\n                results.append(cache[key])\n            else:\n                results.append(None)\n    return results\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Auth Token Cache",
+      "domain_context": "authentication token validation cache",
+      "metric_name": "session token"
+    },
+    {
+      "domain_title": "Edge CDN Store",
+      "domain_context": "edge CDN content caching node",
+      "metric_name": "cached asset"
+    },
+    {
+      "domain_title": "Database Query Buffer",
+      "domain_context": "database prepared statement buffer",
+      "metric_name": "query result"
+    }
+  ],
+  "parameter_ranges": {
+    "capacities": [2, 3, 5]
+  },
+  "fixed_tests": [
+    {
+      "name": "Basic put and get",
+      "input": {
+        "operations": [["PUT", "a", 1], ["PUT", "b", 2], ["GET", "a"], ["GET", "c"]],
+        "capacity": 2
+      },
+      "expected": [1, null]
+    },
+    {
+      "name": "Eviction on capacity exceeded",
+      "input": {
+        "operations": [
+          ["PUT", 1, "one"],
+          ["PUT", 2, "two"],
+          ["GET", 1],
+          ["PUT", 3, "three"],
+          ["GET", 2],
+          ["GET", 3]
+        ],
+        "capacity": 2
+      },
+      "expected": ["one", null, "three"]
+    },
+    {
+      "name": "Update existing key updates recency",
+      "input": {
+        "operations": [
+          ["PUT", "k1", 10],
+          ["PUT", "k2", 20],
+          ["PUT", "k1", 100],
+          ["PUT", "k3", 30],
+          ["GET", "k2"],
+          ["GET", "k1"]
+        ],
+        "capacity": 2
+      },
+      "expected": [null, 100]
+    },
+    {
+      "name": "Capacity 1 eviction",
+      "input": {
+        "operations": [["PUT", "x", 99], ["PUT", "y", 88], ["GET", "x"], ["GET", "y"]],
+        "capacity": 1
+      },
+      "expected": [null, 88]
+    }
+  ]
+}

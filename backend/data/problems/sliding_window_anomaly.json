@@ -1,0 +1,63 @@
+{
+  "id": "sliding_window_anomaly",
+  "template_title": "{domain_title}: Peak Window Mean",
+  "template_description": "In an operational {domain_context}, you need to detect peak loads. Given a series of {metric_name} data points and a sliding window length W, compute the maximum average observed within any contiguous window of length W. Return the maximum average rounded to 2 decimal places. If the data series has fewer than W data points, return 0.0.",
+  "difficulty": "intermediate",
+  "concepts": ["sliding-window", "two-pointers", "arrays"],
+  "algorithm_family": "Sliding Window & Two Pointers",
+  "constraints": [
+    "0 <= len(stream) <= 100,000",
+    "1 <= W <= 10,000",
+    "-10,000.0 <= stream[i] <= 10,000.0"
+  ],
+  "starter_code": "from typing import List\n\ndef solve(stream: List[float], window_size: int) -> float:\n    \"\"\"Calculate the maximum sliding window average rounded to 2 decimal places.\"\"\"\n    # Write your solution here\n    pass\n",
+  "reference_solution": "def solve(stream, window_size):\n    if not stream or window_size <= 0 or len(stream) < window_size:\n        return 0.0\n    window_sum = sum(stream[:window_size])\n    max_sum = window_sum\n    for i in range(window_size, len(stream)):\n        window_sum += stream[i] - stream[i - window_size]\n        if window_sum > max_sum:\n            max_sum = window_sum\n    return round(float(max_sum) / window_size, 2)\n",
+  "version": "1.0",
+  "scenarios": [
+    {
+      "domain_title": "Server Latency Monitoring",
+      "domain_context": "cloud service latency stream",
+      "metric_name": "API response latency (ms)"
+    },
+    {
+      "domain_title": "Network Bandwidth Engine",
+      "domain_context": "network packet router monitor",
+      "metric_name": "bandwidth throughput (Mbps)"
+    },
+    {
+      "domain_title": "Thermal Sensor Controller",
+      "domain_context": "datacenter hardware cooling controller",
+      "metric_name": "core temperature (°C)"
+    }
+  ],
+  "parameter_ranges": {
+    "window_sizes": [3, 4, 5]
+  },
+  "fixed_tests": [
+    {
+      "name": "Standard positive values",
+      "input": {"stream": [1, 12, -5, -6, 50, 3], "window_size": 4},
+      "expected": 12.75
+    },
+    {
+      "name": "All negative values",
+      "input": {"stream": [-10, -20, -5, -4, -15], "window_size": 2},
+      "expected": -4.5
+    },
+    {
+      "name": "Window size equals length",
+      "input": {"stream": [10, 20, 30], "window_size": 3},
+      "expected": 20.0
+    },
+    {
+      "name": "Length less than window size",
+      "input": {"stream": [5, 15], "window_size": 4},
+      "expected": 0.0
+    },
+    {
+      "name": "Single window",
+      "input": {"stream": [100.5, 200.5], "window_size": 1},
+      "expected": 200.5
+    }
+  ]
+}

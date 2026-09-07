@@ -1,0 +1,372 @@
+"""SQLite database connection, schema initialization, and CRUD helpers for SkillProof."""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+DB_PATH = Path(__file__).resolve().parent / "data" / "db.sqlite3"
+
+
+def get_db_connection() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db() -> None:
+    """Initialize database tables according to the SkillProof data model."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS problems (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            difficulty TEXT NOT NULL,
+            concepts TEXT NOT NULL,          -- JSON list of strings
+            algorithm_family TEXT NOT NULL,
+            constraints TEXT NOT NULL,       -- JSON list of strings
+            reference_solution TEXT NOT NULL,
+            tests TEXT NOT NULL,             -- JSON list of test cases
+            starter_code TEXT NOT NULL,
+            version TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS assessments (
+            id TEXT PRIMARY KEY,
+            candidate_id TEXT NOT NULL,
+            problem_id TEXT NOT NULL,
+            calibration_version TEXT NOT NULL,
+            started_at TEXT NOT NULL,
+            submitted_at TEXT,
+            attempt_number INTEGER NOT NULL DEFAULT 1,
+            FOREIGN KEY (problem_id) REFERENCES problems(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS results (
+            assessment_id TEXT PRIMARY KEY,
+            tests_passed INTEGER NOT NULL,
+            tests_total INTEGER NOT NULL,
+            runtime REAL NOT NULL,           -- seconds
+            memory REAL NOT NULL,            -- KB or MB
+            time_taken REAL NOT NULL,        -- seconds
+            code_metrics TEXT NOT NULL,      -- JSON dict of code quality metrics
+            overall_score REAL NOT NULL,
+            problem_version TEXT NOT NULL,
+            calibration_version TEXT NOT NULL,
+            evaluation_model_version TEXT NOT NULL,
+            breakdown TEXT NOT NULL,         -- JSON dict of dimension scores
+            submission_code TEXT,
+            FOREIGN KEY (assessment_id) REFERENCES assessments(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS calibration_observations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id TEXT NOT NULL,
+            problem_id TEXT NOT NULL,
+            features TEXT NOT NULL,          -- JSON list/dict of features
+            result_metrics TEXT NOT NULL,    -- JSON dict of metrics
+            validity_flags TEXT NOT NULL,    -- JSON dict of checks passed
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (assessment_id) REFERENCES assessments(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS model_versions (
+            version TEXT PRIMARY KEY,
+            benchmark_score REAL NOT NULL,
+            validation_metrics TEXT NOT NULL, -- JSON dict
+            created_at TEXT NOT NULL,
+            status TEXT NOT NULL             -- 'active', 'archived', 'rejected'
+        );
+        """
+    )
+    conn.commit()
+    conn.close()
+
+
+def save_problem(problem: Dict[str, Any]) -> None:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO problems (
+            id, title, description, difficulty, concepts,
+            algorithm_family, constraints, reference_solution,
+            tests, starter_code, version, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            problem["id"],
+            problem["title"],
+            problem["description"],
+            problem["difficulty"],
+            json.dumps(problem.get("concepts", [])),
+            problem.get("algorithm_family", "General"),
+            json.dumps(problem.get("constraints", [])),
+            problem["reference_solution"],
+            json.dumps(problem.get("tests", [])),
+            problem.get("starter_code", ""),
+            problem.get("version", "1.0"),
+            datetime.now(timezone.utc).isoformat(),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_problem(problem_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM problems WHERE id = ?", (problem_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["concepts"] = json.loads(d["concepts"])
+    d["constraints"] = json.loads(d["constraints"])
+    d["tests"] = json.loads(d["tests"])
+    return d
+
+
+def create_assessment(
+    assessment_id: str,
+    candidate_id: str,
+    problem_id: str,
+    calibration_version: str = "v1.0",
+) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    cursor.execute(
+        """
+        INSERT INTO assessments (
+            id, candidate_id, problem_id, calibration_version,
+            started_at, submitted_at, attempt_number
+        ) VALUES (?, ?, ?, ?, ?, NULL, 1)
+        """,
+        (assessment_id, candidate_id, problem_id, calibration_version, now_iso),
+    )
+    conn.commit()
+    conn.close()
+    return {
+        "id": assessment_id,
+        "candidate_id": candidate_id,
+        "problem_id": problem_id,
+        "calibration_version": calibration_version,
+        "started_at": now_iso,
+        "submitted_at": None,
+        "attempt_number": 1,
+    }
+
+
+def get_assessment(assessment_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM assessments WHERE id = ?", (assessment_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def mark_assessment_submitted(assessment_id: str) -> bool:
+    """
+    Enforce one-shot submission.
+    Returns True if successfully marked, False if already submitted.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    cursor.execute(
+        """
+        UPDATE assessments
+        SET submitted_at = ?
+        WHERE id = ? AND submitted_at IS NULL
+        """,
+        (now_iso, assessment_id),
+    )
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+
+def save_result(result: Dict[str, Any]) -> None:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO results (
+            assessment_id, tests_passed, tests_total, runtime,
+            memory, time_taken, code_metrics, overall_score,
+            problem_version, calibration_version, evaluation_model_version,
+            breakdown, submission_code
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            result["assessment_id"],
+            result["tests_passed"],
+            result["tests_total"],
+            result["runtime"],
+            result["memory"],
+            result["time_taken"],
+            json.dumps(result.get("code_metrics", {})),
+            result["overall_score"],
+            result["problem_version"],
+            result["calibration_version"],
+            result["evaluation_model_version"],
+            json.dumps(result.get("breakdown", {})),
+            result.get("submission_code", ""),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_result(assessment_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM results WHERE assessment_id = ?", (assessment_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["code_metrics"] = json.loads(d["code_metrics"])
+    d["breakdown"] = json.loads(d["breakdown"])
+    return d
+
+
+def get_candidate_results(candidate_id: str) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT r.*, a.candidate_id, a.problem_id, p.title as problem_title,
+               p.difficulty, p.algorithm_family, a.started_at, a.submitted_at
+        FROM results r
+        JOIN assessments a ON r.assessment_id = a.id
+        JOIN problems p ON a.problem_id = p.id
+        WHERE a.candidate_id = ?
+        ORDER BY a.started_at DESC
+        """,
+        (candidate_id,),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for row in rows:
+        d = dict(row)
+        d["code_metrics"] = json.loads(d["code_metrics"])
+        d["breakdown"] = json.loads(d["breakdown"])
+        results.append(d)
+    return results
+
+
+def save_calibration_observation(
+    assessment_id: str,
+    problem_id: str,
+    features: Any,
+    result_metrics: Dict[str, Any],
+    validity_flags: Dict[str, Any],
+) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    cursor.execute(
+        """
+        INSERT INTO calibration_observations (
+            assessment_id, problem_id, features, result_metrics,
+            validity_flags, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            assessment_id,
+            problem_id,
+            json.dumps(features),
+            json.dumps(result_metrics),
+            json.dumps(validity_flags),
+            now_iso,
+        ),
+    )
+    obs_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return obs_id
+
+
+def get_calibration_observations(limit: int = 1000) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT * FROM calibration_observations ORDER BY timestamp DESC LIMIT ?",
+        (limit,),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for row in rows:
+        d = dict(row)
+        d["features"] = json.loads(d["features"])
+        d["result_metrics"] = json.loads(d["result_metrics"])
+        d["validity_flags"] = json.loads(d["validity_flags"])
+        results.append(d)
+    return results
+
+
+def save_model_version(
+    version: str,
+    benchmark_score: float,
+    validation_metrics: Dict[str, Any],
+    status: str = "active",
+) -> None:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if status == "active":
+        cursor.execute("UPDATE model_versions SET status = 'archived' WHERE status = 'active'")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO model_versions (
+            version, benchmark_score, validation_metrics, created_at, status
+        ) VALUES (?, ?, ?, ?, ?)
+        """,
+        (version, benchmark_score, json.dumps(validation_metrics), now_iso, status),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_active_model_version() -> Optional[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM model_versions WHERE status = 'active' ORDER BY created_at DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["validation_metrics"] = json.loads(d["validation_metrics"])
+    return d
+
+
+def get_all_model_versions() -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM model_versions ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for row in rows:
+        d = dict(row)
+        d["validation_metrics"] = json.loads(d["validation_metrics"])
+        results.append(d)
+    return results

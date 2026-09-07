@@ -1,0 +1,126 @@
+{
+  "version": "1.0-frozen",
+  "description": "Frozen validation benchmark dataset for SkillProof TinyML calibration models. Never modified by runtime learning loops.",
+  "benchmark_samples": [
+    {
+      "id": "bench-01",
+      "features": {
+        "tests_passed_ratio": 1.0,
+        "runtime_ms": 12.4,
+        "lines_of_code": 14,
+        "ast_nodes": 62,
+        "cyclomatic_complexity": 2,
+        "attempt_duration_sec": 310.0,
+        "has_type_annotations": 1,
+        "has_docstring": 1
+      },
+      "ground_truth_score": 95.0,
+      "ground_truth_difficulty_rating": 2.1
+    },
+    {
+      "id": "bench-02",
+      "features": {
+        "tests_passed_ratio": 0.8,
+        "runtime_ms": 28.5,
+        "lines_of_code": 22,
+        "ast_nodes": 95,
+        "cyclomatic_complexity": 4,
+        "attempt_duration_sec": 540.0,
+        "has_type_annotations": 0,
+        "has_docstring": 1
+      },
+      "ground_truth_score": 78.0,
+      "ground_truth_difficulty_rating": 2.4
+    },
+    {
+      "id": "bench-03",
+      "features": {
+        "tests_passed_ratio": 0.4,
+        "runtime_ms": 150.2,
+        "lines_of_code": 35,
+        "ast_nodes": 140,
+        "cyclomatic_complexity": 8,
+        "attempt_duration_sec": 890.0,
+        "has_type_annotations": 0,
+        "has_docstring": 0
+      },
+      "ground_truth_score": 42.0,
+      "ground_truth_difficulty_rating": 2.8
+    },
+    {
+      "id": "bench-04",
+      "features": {
+        "tests_passed_ratio": 1.0,
+        "runtime_ms": 8.1,
+        "lines_of_code": 9,
+        "ast_nodes": 45,
+        "cyclomatic_complexity": 1,
+        "attempt_duration_sec": 190.0,
+        "has_type_annotations": 1,
+        "has_docstring": 1
+      },
+      "ground_truth_score": 98.0,
+      "ground_truth_difficulty_rating": 1.8
+    },
+    {
+      "id": "bench-05",
+      "features": {
+        "tests_passed_ratio": 0.6,
+        "runtime_ms": 45.0,
+        "lines_of_code": 18,
+        "ast_nodes": 78,
+        "cyclomatic_complexity": 3,
+        "attempt_duration_sec": 410.0,
+        "has_type_annotations": 1,
+        "has_docstring": 0
+      },
+      "ground_truth_score": 65.0,
+      "ground_truth_difficulty_rating": 2.3
+    },
+    {
+      "id": "bench-06",
+      "features": {
+        "tests_passed_ratio": 0.2,
+        "runtime_ms": 320.0,
+        "lines_of_code": 40,
+        "ast_nodes": 160,
+        "cyclomatic_complexity": 9,
+        "attempt_duration_sec": 1050.0,
+        "has_type_annotations": 0,
+        "has_docstring": 0
+      },
+      "ground_truth_score": 25.0,
+      "ground_truth_difficulty_rating": 3.0
+    },
+    {
+      "id": "bench-07",
+      "features": {
+        "tests_passed_ratio": 0.9,
+        "runtime_ms": 15.0,
+        "lines_of_code": 16,
+        "ast_nodes": 70,
+        "cyclomatic_complexity": 3,
+        "attempt_duration_sec": 380.0,
+        "has_type_annotations": 1,
+        "has_docstring": 1
+      },
+      "ground_truth_score": 88.0,
+      "ground_truth_difficulty_rating": 2.0
+    },
+    {
+      "id": "bench-08",
+      "features": {
+        "tests_passed_ratio": 0.75,
+        "runtime_ms": 35.0,
+        "lines_of_code": 25,
+        "ast_nodes": 105,
+        "cyclomatic_complexity": 5,
+        "attempt_duration_sec": 600.0,
+        "has_type_annotations": 0,
+        "has_docstring": 0
+      },
+      "ground_truth_score": 72.0,
+      "ground_truth_difficulty_rating": 2.5
+    }
+  ]
+}

@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillProof Challenge Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;family=Geist:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0A0A0B',
+            surface: '#111012',
+            surfaceAlt: '#151315',
+            surfaceElevated: '#1D191C',
+            accentBurgundy: '#8A4D5D',
+            accentRose: '#B86A73',
+            accentWarm: '#D47A68',
+            telemetryBlue: '#78BDE8',
+            successGreen: '#6FA879',
+            textPrimary: '#F5F3F3',
+            textSecondary: '#C8C1C3',
+            textMuted: '#8D8789',
+            borderSubtle: 'rgba(255, 255, 255, 0.07)',
+            borderRoseGlow: 'rgba(184, 106, 115, 0.25)',
+          },
+          fontFamily: {
+            sans: ['Geist', 'sans-serif'],
+            mono: ['Geist Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0A0A0B;
+      color: #F5F3F3;
+      font-family: 'Geist', sans-serif;
+      overflow-x: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(184, 106, 115, 0.35);
+    }
+    .glow-accent {
+      background: radial-gradient(circle at center, rgba(184, 106, 115, 0.14) 0%, rgba(138, 77, 93, 0.03) 65%, transparent 100%);
+    }
+    .editor-line-num {
+      user-select: none;
+      color: #4A4648;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0A0A0B] text-[#F5F3F3] selection:bg-[#B86A73]/30 selection:text-white antialiased">
+
+  <!-- TOP BAR -->
+  <header class="h-14 border-b border-[rgba(255,255,255,0.07)] bg-[#111012]/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4">
+      <!-- Brand Logo Mark & Name -->
+      <a href="index.html" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+        <div class="w-7 h-7 rounded-lg bg-[#151315] border border-[rgba(255,255,255,0.1)] flex items-center justify-center relative overflow-hidden shadow-inner">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#8A4D5D]/40 via-transparent to-[#D47A68]/30"></div>
+          <svg class="w-3.5 h-3.5 text-[#F5F3F3] relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="font-semibold text-sm tracking-tight text-white">SkillProof</span>
+      </a>
+
+      <div class="h-3.5 w-px bg-white/10 hidden sm:block"></div>
+
+      <!-- Scope Metadata Badges -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#151315] border border-white/10 text-xs text-[#C8C1C3]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#78BDE8]"></span>
+          <span class="font-medium text-white" id="top-skill-badge">Python 3.12</span>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-[#191619] border border-[rgba(184,106,115,0.25)] text-[#D9A0AA] font-medium hidden md:inline-block" id="top-diff-badge">
+          Intermediate
+        </span>
+      </div>
+    </div>
+
+    <!-- Center Assessment Progression Indicator -->
+    <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center gap-2 px-3 py-1 rounded-md bg-[#151315] border border-white/5">
+        <span class="text-[#8D8789]">Challenge</span>
+        <span class="font-mono font-medium text-white">01 <span class="text-[#8D8789]">/</span> 01</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#151315] border border-white/5 text-[#C8C1C3]">
+        <svg class="w-3.5 h-3.5 text-[#D47A68]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span class="font-mono text-[#F5F3F3]" id="session-timer">17:56</span>
+        <span class="text-[10px] text-[#8D8789]">remaining</span>
+      </div>
+    </div>
+
+    <!-- Right Telemetry & Status -->
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#151315] border border-white/5 text-[11px] text-[#8D8789]">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#6FA879] animate-pulse"></span>
+        <span>Sandbox: Hermetic v3.4</span>
+      </div>
+      <button onclick="toggleShortcuts()" class="text-xs text-[#8D8789] hover:text-[#C8C1C3] transition-colors px-2 py-1 rounded hover:bg-white/5 hidden sm:block">
+        ⌘S auto-saved
+      </button>
+      <div class="w-7 h-7 rounded-full bg-[#1D191C] border border-white/10 flex items-center justify-center text-xs font-semibold text-[#D9A0AA]">
+        EV
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER (TWO-COLUMN DESKTOP, VERTICAL ON MOBILE) -->
+  <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+    <!-- LEFT PANEL: CHALLENGE INSTRUCTIONS & BRIEFING -->
+    <section class="w-full lg:w-[45%] xl:w-[42%] flex flex-col border-b lg:border-b-0 lg:border-r border-[rgba(255,255,255,0.07)] bg-[#0C0B0D] custom-scrollbar overflow-y-auto max-h-[48vh] lg:max-h-[calc(100vh-3.5rem)]">
+      
+      <!-- Panel Header -->
+      <div class="p-5 sm:p-6 border-b border-white/5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] uppercase tracking-widest font-mono text-[#B86A73] font-semibold" id="challenge-protocol">Attestation Protocol #PY-8821</span>
+          <span class="text-xs text-[#8D8789] flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#6FA879]"></span> Single-function optimization
+          </span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2" id="challenge-title">
+          Resilient Stream Aggregator
+        </h1>
+        <p class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed" id="challenge-overview">
+          You've been asked to improve a data-processing function used by an asynchronous production microservice handling multi-tenant telemetry bursts.
+        </p>
+      </div>
+
+      <!-- Problem Context & Description -->
+      <div class="p-5 sm:p-6 space-y-6">
+        
+        <!-- Objective Card -->
+        <div class="p-4 rounded-xl bg-[#111012] border border-white/5">
+          <h2 class="text-xs font-semibold text-white tracking-wide uppercase flex items-center gap-2 mb-2.5">
+            <svg class="w-4 h-4 text-[#D47A68]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Production Scenario
+          </h2>
+          <p class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed">
+            The existing legacy function <code class="font-mono text-[12px] bg-black/40 px-1.5 py-0.5 rounded text-[#D9A0AA]">aggregate_payload_stream()</code> suffers from O(N²) memory consumption during unordered timestamp streams and silently crashes when receiving malformed JSON metadata envelopes.
+          </p>
+        </div>
+
+        <!-- Requirements -->
+        <div>
+          <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73]"></span> Requirements
+          </h3>
+          <ul class="space-y-2.5 text-xs sm:text-sm text-[#C8C1C3]">
+            <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
+              <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">01</span>
+              <span><strong>Temporal Grouping:</strong> Group events by 60-second time buckets while preserving chronological order within each bucket.</span>
+            </li>
+            <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
+              <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">02</span>
+              <span><strong>Defensive Validation:</strong> Drop malformed payloads with invalid schema, returning a sanitized audit record containing aggregate error counts.</span>
+            </li>
+            <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
+              <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">03</span>
+              <span><strong>Throughput Constraint:</strong> Execute aggregation with O(N log K) time complexity or better, where K is the total unique partition keys.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Constraints -->
+        <div>
+          <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#D47A68]"></span> Constraints
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
+              <svg class="w-3.5 h-3.5 text-[#8D8789]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>Max peak memory: <strong>&lt; 64MB</strong></span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
+              <svg class="w-3.5 h-3.5 text-[#8D8789]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Standard library only (No Pandas)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- What We're Evaluating -->
+        <div class="pt-4 border-t border-white/5">
+          <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>What we're evaluating</span>
+            <span class="text-[11px] font-mono text-[#8D8789] normal-case">Multi-agent assessment</span>
+          </h3>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+              <span class="text-[#C8C1C3]">Problem Solving &amp; Decomposition</span>
+              <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 20%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+              <span class="text-[#C8C1C3]">Correctness &amp; Invariant Validation</span>
+              <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 25%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+              <span class="text-[#C8C1C3]">Code Quality &amp; Idiomatic Style</span>
+              <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 20%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+              <span class="text-[#C8C1C3]">Algorithmic Efficiency (Time/Space)</span>
+              <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 20%</span>
+            </div>
+            <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+              <span class="text-[#C8C1C3]">Understanding &amp; Edge-case Handling</span>
+              <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 15%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESTILLED AI HINT ACCORDION -->
+        <div class="pt-2">
+          <div class="rounded-xl border border-white/10 bg-[#151315]/80 overflow-hidden transition-all duration-300">
+            <button onclick="toggleHint()" id="hint-toggle-btn" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition-colors">
+              <div class="flex items-center gap-2.5">
+                <div class="w-6 h-6 rounded-md bg-[#1D191C] border border-[rgba(184,106,115,0.3)] flex items-center justify-center text-[#D9A0AA]">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xs font-medium text-white flex items-center gap-1.5">
+                    Need a hint? <span class="text-[10px] text-[#8D8789] font-normal">(Non-evaluative guidance)</span>
+                  </div>
+                  <div class="text-[11px] text-[#8D8789]">Restrained conceptual prompt to guide thinking</div>
+                </div>
+              </div>
+              <svg id="hint-arrow" class="w-4 h-4 text-[#8D8789] transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div id="hint-panel" class="hidden p-4 border-t border-white/5 bg-[#111012] text-xs text-[#C8C1C3] space-y-2 leading-relaxed">
+              <p class="text-[#D9A0AA] font-mono text-[11px]">AI Thought Scaffold:</p>
+              <p>Consider using Python's standard <code class="text-white font-mono bg-white/5 px-1 py-0.5 rounded">collections.defaultdict(list)</code> keyed by <code class="text-white font-mono bg-white/5 px-1 py-0.5 rounded">ts - (ts % 60)</code>. Instead of doing repeated sorting on the full array, collect items into their deterministic temporal bucket and sort each partition individually or maintain insertion order if upstream telemetry is partially ordered.</p>
+              <p class="text-[11px] text-[#8D8789]">Note: Utilizing hints does not deduct verification marks, but reasoning justification is factored into the multi-axis attestation.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: CODE EDITOR WORKSPACE -->
+    <section class="w-full lg:w-[55%] xl:w-[58%] flex flex-col bg-[#0A0A0B] h-[52vh] lg:h-[calc(100vh-3.5rem)] relative overflow-hidden">
+
+      <!-- Editor Toolbar -->
+      <div class="h-11 border-b border-[rgba(255,255,255,0.07)] bg-[#111012] px-4 flex items-center justify-between z-10 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 text-xs font-mono text-[#F5F3F3]">
+            <span class="w-2 h-2 rounded-full bg-[#B86A73]"></span>
+            <span>solution.py</span>
+          </div>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-[#191619] text-[#8D8789] font-mono">Python 3.12</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Reset / Format -->
+          <button onclick="resetTemplate()" title="Reset to Starter Template" class="text-xs text-[#8D8789] hover:text-white px-2 py-1 rounded hover:bg-white/5 transition-colors flex items-center gap-1 font-mono">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Reset
+          </button>
+
+          <!-- Run Tests (Secondary CTA) -->
+          <button onclick="runLocalTests()" id="btn-run" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191619] hover:bg-[#231E23] border border-white/10 text-xs font-medium text-white transition-all active:scale-[0.98]">
+            <svg class="w-3.5 h-3.5 text-[#78BDE8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Run Sandbox (3 tests)</span>
+          </button>
+
+          <!-- Submit (Primary CTA with Radiant Warm Accent) -->
+          <button onclick="startSubmissionEvaluation()" id="btn-submit" class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-[#9B5362] via-[#C66D73] to-[#D47A68] hover:opacity-95 text-xs font-semibold text-white shadow-sm shadow-[#B86A73]/20 transition-all active:scale-[0.98]">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Submit Solution</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor Canvas Surface with Line Numbers -->
+      <div class="flex-1 flex overflow-hidden bg-[#0D0C0E] relative custom-scrollbar font-mono text-[13px] leading-relaxed">
+        
+        <!-- Line Numbers Column -->
+        <div class="w-12 py-4 bg-[#0A0A0B]/80 text-right pr-3 select-none text-[#4A4648] border-r border-white/5 font-mono text-xs flex-shrink-0 flex flex-col space-y-0">
+          <div>01</div><div>02</div><div>03</div><div>04</div><div>05</div><div>06</div><div>07</div><div>08</div><div>09</div><div>10</div>
+          <div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
+          <div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+        </div>
+
+        <!-- Editable Code Area with Syntax Simulation -->
+        <div class="flex-1 p-4 overflow-y-auto custom-scrollbar relative">
+          <textarea id="code-input" spellcheck="false" class="w-full h-full bg-transparent text-[#F5F3F3] outline-none resize-none font-mono text-[13px] leading-relaxed selection:bg-[#B86A73]/40" style="white-space: pre; tab-size: 4;">from typing import List, Dict, Any
+from collections import defaultdict
+
+def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
+    """
+    Groups events into 60s temporal buckets with schema integrity check.
+    O(N log K) bounded memory footprint.
+    """
+    valid_buckets = defaultdict(list)
+    malformed_count = 0
+    
+    for record in events:
+        # Schema validation
+        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:
+            malformed_count += 1
+            continue
+            
+        ts = record["timestamp"]
+        bucket_key = str(ts - (ts % 60))
+        valid_buckets[bucket_key].append(record)
+        
+    return {
+        "status": "success",
+        "partitions": dict(valid_buckets),
+        "malformed_dropped": malformed_count
+    }
+</textarea>
+        </div>
+
+      </div>
+
+      <div id="eval-error" class="hidden mx-4 my-3 rounded-lg border border-[#D47A68]/40 bg-[#3A1F22] px-3 py-2.5 text-xs text-[#FFD3CC]" role="alert"></div>
+
+      <!-- BOTTOM TEST RESULTS DRAWER -->
+      <div id="test-console" class="h-44 border-t border-[rgba(255,255,255,0.08)] bg-[#111012] flex flex-col flex-shrink-0 z-20 transition-all">
+        <!-- Console Header -->
+        <div class="h-8 px-4 bg-[#151315] border-b border-white/5 flex items-center justify-between text-xs text-[#8D8789]">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[#C8C1C3]">Local Test Harness</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-[#6FA879]"></span>
+            <span class="text-[11px] text-[#6FA879]" id="test-status-text">3 / 3 Passing</span>
+          </div>
+          <span class="text-[11px] font-mono text-[#8D8789]">Execution: 28ms (0.12MB)</span>
+        </div>
+
+        <!-- Test Case Results -->
+        <div class="p-3 overflow-y-auto custom-scrollbar flex-1 space-y-1.5 font-mono text-xs">
+          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="text-[#6FA879] font-bold">✓ PASS</span>
+              <span class="text-white">test_temporal_60s_binning</span>
+            </div>
+            <span class="text-[#8D8789] text-[11px]">8ms</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="text-[#6FA879] font-bold">✓ PASS</span>
+              <span class="text-white">test_malformed_envelope_sanitization</span>
+            </div>
+            <span class="text-[#8D8789] text-[11px]">11ms</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="text-[#6FA879] font-bold">✓ PASS</span>
+              <span class="text-white">test_memory_bounded_10k_burst</span>
+            </div>
+            <span class="text-[#8D8789] text-[11px]">9ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERLAY: AI EVALUATION SUBMISSION STATE (Triggered on Submit) -->
+      <div id="eval-overlay" class="hidden absolute inset-0 bg-[#0A0A0B]/95 backdrop-blur-md z-40 flex items-center justify-center p-6">
+        <div class="max-w-md w-full p-6 rounded-2xl bg-[#111012] border border-[rgba(184,106,115,0.35)] shadow-2xl relative overflow-hidden">
+          
+          <!-- Subtle warm glow behind modal -->
+          <div class="absolute -top-24 -left-24 w-48 h-48 bg-[#B86A73]/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-[#D47A68]/15 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Evaluation Header -->
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-[#191619] border border-[rgba(184,106,115,0.3)] flex items-center justify-center text-[#D9A0AA] shadow-inner">
+              <svg class="w-5 h-5 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 3a9 9 0 0 1 9 9"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-base font-semibold text-white tracking-tight">Analyzing your approach...</h4>
+              <p class="text-xs text-[#8D8789]">Multi-agent neural attestation protocol active</p>
+            </div>
+          </div>
+
+          <!-- Small progress bar with calm animation -->
+          <div class="w-full bg-[#191619] h-1.5 rounded-full overflow-hidden mb-5 border border-white/5">
+            <div id="eval-progress-bar" class="bg-gradient-to-r from-[#8A4D5D] via-[#B86A73] to-[#D47A68] h-full w-2/5 rounded-full transition-all duration-700 ease-out"></div>
+          </div>
+
+          <!-- Evaluation Sequence Pipeline -->
+          <div class="space-y-2.5 font-mono text-xs mb-6">
+            <div class="flex items-center justify-between text-[#6FA879]" id="seq-step-1">
+              <span class="flex items-center gap-2">
+                <span>✓</span> Checking correctness
+              </span>
+              <span class="text-[11px] text-[#8D8789]">100% assertions</span>
+            </div>
+            <div class="flex items-center justify-between text-[#6FA879]" id="seq-step-2">
+              <span class="flex items-center gap-2">
+                <span>✓</span> Reviewing problem solving
+              </span>
+              <span class="text-[11px] text-[#8D8789]">Modular flow</span>
+            </div>
+            <div class="flex items-center justify-between text-white" id="seq-step-3">
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73] animate-ping"></span> Evaluating code quality
+              </span>
+              <span class="text-[11px] text-[#D9A0AA]">In Progress</span>
+            </div>
+            <div class="flex items-center justify-between text-[#8D8789]" id="seq-step-4">
+              <span class="flex items-center gap-2">
+                <span>•</span> Analyzing efficiency
+              </span>
+              <span class="text-[11px]">Pending</span>
+            </div>
+            <div class="flex items-center justify-between text-[#8D8789]" id="seq-step-5">
+              <span class="flex items-center gap-2">
+                <span>•</span> Identifying improvement areas
+              </span>
+              <span class="text-[11px]">Queued</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-between pt-3 border-t border-white/5">
+            <span class="text-[11px] text-[#8D8789]">Cryptographically locked upon completion</span>
+            <div class="flex items-center gap-2">
+              <button onclick="cancelSubmission()" class="text-xs text-[#8D8789] hover:text-white px-2.5 py-1 rounded transition-colors">
+                Return to editor
+              </button>
+              <button onclick="finishEvaluation()" class="text-xs px-3 py-1 rounded bg-[#B86A73]/30 text-white hover:bg-[#B86A73]/60 transition-colors">
+                View Results
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="js/mock_data.js"></script>
+  <script src="js/flow.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    let activeChallenge = null;
+
+    // Load active challenge into workspace
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.SkillProofFlow) {
+        activeChallenge = SkillProofFlow.getStoredAssessment();
+        if (!activeChallenge && SkillProofFlow.getAssessmentId()) {
+          activeChallenge = await SkillProofApi.getAssessment(SkillProofFlow.getAssessmentId());
+          SkillProofFlow.setAssessment(activeChallenge);
+        }
+        activeChallenge = activeChallenge || SkillProofFlow.getActiveChallenge();
+        const skillKey = SkillProofFlow.getSkill();
+        const diffKey = SkillProofFlow.getDifficulty();
+
+        const topSkillEl = document.getElementById('top-skill-badge');
+        if (topSkillEl) topSkillEl.textContent = activeChallenge.title ? `${skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}` : skillKey;
+
+        const topDiffEl = document.getElementById('top-diff-badge');
+        if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || diffKey;
+
+        const protoEl = document.getElementById('challenge-protocol');
+        if (protoEl && activeChallenge.protocolNode) protoEl.textContent = 'Attestation Protocol ' + activeChallenge.protocolNode;
+
+        const titleEl = document.getElementById('challenge-title');
+        if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
+
+        const overviewEl = document.getElementById('challenge-overview');
+        if (overviewEl && activeChallenge.overview) overviewEl.textContent = activeChallenge.overview;
+
+        // Set starter code if not already saved
+        const savedCode = SkillProofFlow.getSolutionCode();
+        const editorEl = document.getElementById('code-input');
+        if (editorEl) {
+          editorEl.value = savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
+        }
+      }
+    });
+
+    // Toggle Hint Accordion
+    function toggleHint() {
+      const panel = document.getElementById('hint-panel');
+      const arrow = document.getElementById('hint-arrow');
+      if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+      } else {
+        panel.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+      }
+    }
+
+    // Finish evaluation and redirect
+    function finishEvaluation() {
+      if (evalInterval) clearInterval(evalInterval);
+      const editorEl = document.getElementById('code-input');
+      if (editorEl && window.SkillProofFlow) {
+        SkillProofFlow.setSolutionCode(editorEl.value);
+      }
+      window.location.href = 'evaluation.html';
+    }
+
+    // Interactive Submission Simulation Flow
+    let evalInterval;
+    async function startSubmissionEvaluation() {
+      const overlay = document.getElementById('eval-overlay');
+      const progressBar = document.getElementById('eval-progress-bar');
+      const editorEl = document.getElementById('code-input');
+      const assessmentId = SkillProofFlow.getAssessmentId();
+      if (!assessmentId || !editorEl) {
+        window.alert('Start a challenge before submitting a solution.');
+        return;
+      }
+      overlay.classList.remove('hidden');
+      document.getElementById('eval-error').classList.add('hidden');
+      try {
+        SkillProofFlow.setSolutionCode(editorEl.value);
+        const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
+        const assessment = await SkillProofApi.submitSolution(assessmentId, {
+          solution: editorEl.value,
+          timeElapsedSeconds: Math.max(0, Math.round((Date.now() - startedAt) / 1000)),
+        });
+        progressBar.style.width = '100%';
+        SkillProofFlow.setAssessment(assessment);
+        window.location.href = 'evaluation.html';
+      } catch (error) {
+        overlay.classList.add('hidden');
+        showSubmissionError(error?.message || String(error));
+      }
+    }
+
+    function showSubmissionError(message) {
+      const errorEl = document.getElementById('eval-error');
+      errorEl.textContent = `Error: ${message}`;
+      errorEl.classList.remove('hidden');
+    }
+
+    function cancelSubmission() {
+      if (evalInterval) clearInterval(evalInterval);
+      document.getElementById('eval-overlay').classList.add('hidden');
+    }
+
+    function runLocalTests() {
+      const btn = document.getElementById('btn-run');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Testing sandbox...';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        const statusText = document.getElementById('test-status-text');
+        statusText.textContent = '3 / 3 Passing (All hermetic constraints met)';
+      }, 650);
+    }
+
+    function resetTemplate() {
+      if (activeChallenge && activeChallenge.starterCode) {
+        document.getElementById('code-input').value = activeChallenge.starterCode;
+      } else {
+        const defaultCode = `from typing import List, Dict, Any\nfrom collections import defaultdict\n\ndef aggregate_payload_stream(events: List[Dict[str, Any]]) -> Dict[str, Any]:\n    valid_buckets = defaultdict(list)\n    malformed_count = 0\n    for record in events:\n        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:\n            malformed_count += 1\n            continue\n        ts = record["timestamp"]\n        bucket_key = str(ts - (ts % 60))\n        valid_buckets[bucket_key].append(record)\n    return {"status": "success", "partitions": dict(valid_buckets), "malformed_dropped": malformed_count}\n`;
+        document.getElementById('code-input').value = defaultCode;
+      }
+    }
+
+    function toggleShortcuts() {
+      alert("Shortcuts:\n• ⌘+Enter: Run Local Tests\n• ⌘+S: Save Draft\n• ⌘+Shift+Enter: Submit Solution");
+    }
+
+    // Countdown Timer Simulation
+    let minutes = 18;
+    let seconds = 42;
+    setInterval(() => {
+      if (seconds > 0) {
+        seconds--;
+      } else if (minutes > 0) {
+        minutes--;
+        seconds = 59;
+      }
+      const mStr = minutes.toString().padStart(2, '0');
+      const sStr = seconds.toString().padStart(2, '0');
+      const el = document.getElementById('session-timer');
+      if (el) el.textContent = `${mStr}:${sStr}`;
+    }, 1000);
+    sessionStorage.setItem('skillproof_started_at', sessionStorage.getItem('skillproof_started_at') || Date.now());
+  </script>
+</body></html>
