@@ -497,7 +497,7 @@
 <!-- Secondary Footnote Links -->
 <div class="flex flex-wrap items-center justify-between gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
 <div class="flex items-center gap-space-sm">
-<a class="hover:text-on-surface transition-colors flex items-center gap-1" href="workspace.html">
+<a id="eval-workspace-link" class="hover:text-on-surface transition-colors flex items-center gap-1" href="workspace.html">
 <span class="material-symbols-outlined text-[14px]">data_object</span> View Raw Solution Code
 </a>
 <span>•</span>
@@ -551,6 +551,9 @@
     }
 
     // 1. Render Top Badges
+    const wsLink = document.getElementById('eval-workspace-link');
+    if (wsLink) wsLink.href = `workspace.html?id=${encodeURIComponent(assessmentId)}`;
+
     const skillPill = document.getElementById('eval-skill-pill');
     if (skillPill) skillPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Python 3.11';
 

@@ -69,6 +69,7 @@
         starterCode: prob.starter_code || "def solve(*args):\n    pass\n",
         concepts: prob.concepts || [],
         algorithm_family: prob.algorithm_family || "General",
+        examples: prob.examples || [],
         problem_version: prob.version || "1.0",
         calibration_version: res.calibration_version,
       };
@@ -104,6 +105,7 @@
         starterCode: prob.starter_code || "",
         concepts: prob.concepts || [],
         algorithm_family: prob.algorithm_family || "General",
+        examples: prob.examples || [],
         problem_version: prob.version || "1.0",
         calibration_version: res.calibration_version,
         result: result,
@@ -111,6 +113,13 @@
 
       window.SkillProofFlow?.setAssessment?.(adapted);
       return adapted;
+    },
+
+    async runCode(assessmentId, code) {
+      return request(`/api/assessment/${encodeURIComponent(assessmentId)}/run`, {
+        method: "POST",
+        body: JSON.stringify({ solution: code }),
+      });
     },
 
     async submitSolution(assessmentId, { solution, timeElapsedSeconds } = {}) {

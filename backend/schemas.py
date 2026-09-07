@@ -66,6 +66,7 @@ class ProblemPublicView(BaseModel):
     starter_code: str
     version: str
     metadata: Optional[Dict[str, Any]] = None
+    examples: Optional[List[Dict[str, Any]]] = None
 
 
 
@@ -159,6 +160,29 @@ class ResultResponse(BaseModel):
     problem_version: str
     calibration_version: str
     evaluation_model_version: str
+    submission_code: Optional[str] = None
+
+
+class RunRequest(BaseModel):
+    solution: str = Field(min_length=1)
+
+
+class RunTestResult(BaseModel):
+    test_index: int
+    name: str
+    passed: bool
+    runtime_ms: float
+    error: Optional[str] = None
+
+
+class RunResponse(BaseModel):
+    status: str
+    tests_passed: int
+    tests_total: int
+    runtime_ms: float
+    memory_mb: float
+    test_results: List[RunTestResult] = Field(default_factory=list)
+    error: Optional[str] = None
 
 
 class PassportSkillEntry(BaseModel):
@@ -210,6 +234,10 @@ class CalibrationStatusResponse(BaseModel):
     available_versions: List[Dict[str, Any]]
     previous_model_version: Optional[str] = None
     latest_retrain_result: Optional[Dict[str, Any]] = None
+    latest_training_status: Optional[str] = None
+    latest_accepted_version: Optional[str] = None
+    latest_rejected_version: Optional[str] = None
+    rejection_reason: Optional[str] = None
 
 
 class RetrainResponse(BaseModel):

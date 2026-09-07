@@ -390,7 +390,8 @@
   const copyLabel = document.getElementById('copy-label');
   if (copyBtn && copyLabel) {
     copyBtn.addEventListener('click', () => {
-      navigator.clipboard?.writeText('0x88f2940bc2a177e4d812239fbc410291e92d837411294827104928172c91a');
+      const textToCopy = window.currentPassportId || window.location.href;
+      navigator.clipboard?.writeText(textToCopy);
       copyLabel.textContent = 'Copied!';
       copyLabel.classList.add('text-secondary');
       setTimeout(() => {
@@ -435,6 +436,7 @@
       if (!passport || passport.detail) {
         throw new Error(passport?.detail || "No passport available");
       }
+      window.currentPassportId = passport.passport_id;
 
       // 1. Header Overline and Title
       const overlineEl = document.getElementById('passport-overline');

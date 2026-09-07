@@ -216,6 +216,26 @@ def get_calibration_status() -> Dict[str, Any]:
                 "message": f"Model {newest.get('version')} active and verified against frozen benchmark.",
             }
 
+    latest_training_status = None
+    latest_accepted_version = None
+    latest_rejected_version = None
+    rejection_reason = None
+
+    if retrain_summary:
+        latest_training_status = retrain_summary.get("status")
+        if retrain_summary.get("success"):
+            latest_accepted_version = retrain_summary.get("proposed_version")
+        else:
+            latest_rejected_version = retrain_summary.get("proposed_version")
+            rejection_reason = (
+                retrain_summary.get("rejection_reason")
+                or retrain_summary.get("guardrail_results", {}).get("reason")
+                or retrain_summary.get("message")
+            )
+    elif all_versions:
+        latest_training_status = "accepted"
+        latest_accepted_version = all_versions[0].get("version")
+
     return {
         "active_model_version": active_model.version,
         "calibration_version": active_model.version,
@@ -233,6 +253,10 @@ def get_calibration_status() -> Dict[str, Any]:
         "available_versions": all_versions,
         "previous_model_version": previous_ver,
         "latest_retrain_result": retrain_summary,
+        "latest_training_status": latest_training_status,
+        "latest_accepted_version": latest_accepted_version,
+        "latest_rejected_version": latest_rejected_version,
+        "rejection_reason": rejection_reason,
     }
 
 
@@ -261,6 +285,7 @@ def trigger_calibration_retrain(
         current_active_model=active_model,
     )
 
+    reason = guardrail_results.get("reason") or guardrail_results.get("rejection_reason")
     _latest_retrain_result = {
         "success": success,
         "status": "accepted" if success else "rejected",
@@ -268,7 +293,8 @@ def trigger_calibration_retrain(
         "benchmark_score": guardrail_results.get("proposed_benchmark_score", active_model.benchmark_score),
         "previous_benchmark_score": active_model.benchmark_score,
         "guardrail_results": guardrail_results,
-        "message": "Model published and active" if success else guardrail_results.get("rejection_reason", "Guardrail criteria not met"),
+        "rejection_reason": reason if not success else None,
+        "message": "Model published and active" if success else (reason or "Guardrail criteria not met"),
     }
 
     return success, guardrail_results

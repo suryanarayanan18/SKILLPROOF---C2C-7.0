@@ -274,9 +274,9 @@
       const actionLink = isCompleted ? `evaluation.html?id=${encodeURIComponent(item.assessment_id)}` : `workspace.html?id=${encodeURIComponent(item.assessment_id)}`;
       const actionText = isCompleted ? "View Full Report" : "Resume Workspace";
       
-      const runtimeStr = item.runtime !== null && item.runtime !== undefined ? `${Math.round(item.runtime * 1000)}ms` : (isCompleted ? "32ms" : "Pending");
-      const memoryStr = item.memory !== null && item.memory !== undefined ? `${Number(item.memory).toFixed(1)} MB` : (isCompleted ? "18.4 MB" : "Pending");
-      const testStr = item.tests_total ? `${item.tests_passed}/${item.tests_total} Pass` : (isCompleted ? "100% Pass" : "Sandbox active");
+      const runtimeStr = item.runtime !== null && item.runtime !== undefined ? `${Math.round(item.runtime * 1000)}ms` : "Pending";
+      const memoryStr = item.memory !== null && item.memory !== undefined ? `${Number(item.memory).toFixed(1)} MB` : "Pending";
+      const testStr = item.tests_total ? `${item.tests_passed}/${item.tests_total} Pass` : (isCompleted ? "Completed" : "Sandbox active");
       
       let dateStr = "Recently";
       try {

@@ -100,6 +100,13 @@ def get_active_model() -> SkillCalibrationModel:
         if v1_path.exists():
             try:
                 _ACTIVE_MODEL = SkillCalibrationModel.load("v1.0")
+                try:
+                    import db
+                    if not db.get_active_model_version():
+                        meta = _ACTIVE_MODEL.metadata or {"version": "v1.0", "benchmark_score": _ACTIVE_MODEL.benchmark_score}
+                        db.save_model_version("v1.0", _ACTIVE_MODEL.benchmark_score, meta, status="active")
+                except Exception:
+                    pass
                 return _ACTIVE_MODEL
             except Exception:
                 pass

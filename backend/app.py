@@ -26,6 +26,9 @@ from schemas import (
     ResultBreakdown,
     ResultResponse,
     RetrainResponse,
+    RunRequest,
+    RunResponse,
+    RunTestResult,
     SkillPassportResponse,
     SubmissionRequest,
     TestRunResult,
@@ -123,6 +126,17 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
         "problem_version": valid_problem.get("version", "1.0"),
     })
 
+    raw_examples = valid_problem.get("examples")
+    if not raw_examples and "tests" in valid_problem and len(valid_problem["tests"]) > 0:
+        raw_examples = [
+            {
+                "input": t.get("input"),
+                "output": t.get("expected"),
+                "explanation": t.get("name", ""),
+            }
+            for t in valid_problem["tests"][:2]
+        ]
+
     # Public problem view: NEVER contains reference_solution or tests!
     problem_view = ProblemPublicView(
         id=valid_problem["id"],
@@ -137,6 +151,7 @@ def create_assessment(payload: AssessmentCreateRequest) -> AssessmentResponse:
         starter_code=valid_problem.get("starter_code", ""),
         version=valid_problem.get("version", "1.0"),
         metadata=metadata,
+        examples=raw_examples,
     )
 
     return AssessmentResponse(
@@ -167,6 +182,17 @@ def get_assessment(id: str) -> AssessmentResponse:
         "problem_version": problem.get("version", "1.0"),
     }
 
+    raw_examples = problem.get("examples")
+    if not raw_examples and "tests" in problem and len(problem["tests"]) > 0:
+        raw_examples = [
+            {
+                "input": t.get("input"),
+                "output": t.get("expected"),
+                "explanation": t.get("name", ""),
+            }
+            for t in problem["tests"][:2]
+        ]
+
     # Public problem view: NEVER contains reference_solution or tests!
     problem_view = ProblemPublicView(
         id=problem["id"],
@@ -181,6 +207,7 @@ def get_assessment(id: str) -> AssessmentResponse:
         starter_code=problem.get("starter_code", ""),
         version=problem.get("version", "1.0"),
         metadata=metadata,
+        examples=raw_examples,
     )
 
     return AssessmentResponse(
@@ -309,6 +336,69 @@ def submit_solution(id: str, payload: SubmissionRequest) -> ResultResponse:
         problem_version=problem_version,
         calibration_version=calibration_version,
         evaluation_model_version=eval_model_version,
+        submission_code=payload.solution,
+    )
+
+
+@app.post("/api/assessment/{id}/run", response_model=RunResponse)
+def run_solution_tests(id: str, payload: RunRequest) -> RunResponse:
+    """
+    Executes candidate's Python code in the sandbox without finalizing submission.
+    Returns real test execution metrics (passed count, individual test status, runtime, errors).
+    Does NOT mark assessment submitted and does NOT mutate results or calibration pool.
+    """
+    assessment = db.get_assessment(id)
+    if not assessment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found.")
+
+    if assessment.get("submitted_at") is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Assessment has already been submitted and finalized. Sandbox execution locked.",
+        )
+
+    problem = db.get_problem(assessment["problem_id"])
+    if not problem:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem definition missing.")
+
+    # Execute candidate code in sandbox
+    raw_execution = execute_solution_tests(
+        solution_code=payload.solution,
+        tests=problem.get("tests", []),
+        timeout_seconds=5.0,
+    )
+
+    test_run_items = [
+        RunTestResult(
+            test_index=t.get("test_index", idx),
+            name=t.get("name", f"Test #{idx+1}"),
+            passed=t.get("passed", False),
+            runtime_ms=t.get("runtime_ms", 0.0),
+            error=t.get("error"),
+        )
+        for idx, t in enumerate(raw_execution.get("test_results", []))
+    ]
+
+    runtime_ms = round(raw_execution.get("runtime", raw_execution.get("wall_time", 0.0)) * 1000.0, 2)
+    memory_mb = round(raw_execution.get("memory_mb", 0.0), 2)
+
+    status_str = "ok"
+    if raw_execution.get("error"):
+        if "SyntaxError" in raw_execution["error"]:
+            status_str = "syntax_error"
+        elif "timed out" in raw_execution["error"].lower():
+            status_str = "timeout"
+        else:
+            status_str = "runtime_error"
+
+    return RunResponse(
+        status=status_str,
+        tests_passed=raw_execution.get("tests_passed", 0),
+        tests_total=raw_execution.get("tests_total", len(problem.get("tests", []))),
+        runtime_ms=runtime_ms,
+        memory_mb=memory_mb,
+        test_results=test_run_items,
+        error=raw_execution.get("error"),
     )
 
 
@@ -341,6 +431,7 @@ def get_assessment_result(id: str) -> ResultResponse:
         problem_version=result["problem_version"],
         calibration_version=result["calibration_version"],
         evaluation_model_version=result["evaluation_model_version"],
+        submission_code=result.get("submission_code"),
     )
 
 
