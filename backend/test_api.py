@@ -1,212 +1,114 @@
-"""API contract tests. Gemini calls are patched; no live key or network is used."""
+"""API contract tests for the hardened SkillProof backend API."""
 
 import unittest
-import os
-from unittest.mock import patch
-
 from fastapi.testclient import TestClient
-
-from app import ASSESSMENTS, app
-
-
-CHALLENGE_TEXT = """TITLE:
-Record Counter
-
-PROBLEM:
-Count valid records in a list.
-
-TASK:
-Write count_records(records).
-
-CONSTRAINTS:
-- Use one pass
-- Return an integer
-
-STARTER_CODE:
-def count_records(records):
-    pass
-"""
-
-EVALUATION_TEXT = """OVERALL SCORE:
-85
-
-CORRECTNESS:
-90
-
-PROBLEM SOLVING:
-84
-
-CODE QUALITY:
-80
-
-EFFICIENCY:
-88
-
-UNDERSTANDING:
-86
-
-PRACTICAL APPLICATION:
-82
-
-STRENGTHS:
-- Correct one-pass solution
-
-WEAKNESSES:
-- Add more tests
-
-FEEDBACK:
-Clear and correct.
-
-RECOMMENDED NEXT STEP:
-Practice edge cases.
-"""
+from app import app
+import db
 
 
-class SkillProofApiTests(unittest.TestCase):
+class SkillProofApiContractTests(unittest.TestCase):
     def setUp(self):
-        ASSESSMENTS.clear()
         self.client = TestClient(app)
 
     def test_health(self):
         response = self.client.get("/api/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "ok")
-        self.assertEqual(response.json()["provider"], "mock")
+        data = response.json()
+        self.assertEqual(data["status"], "ok")
+        self.assertEqual(data["service"], "skillproof-api")
+        self.assertIn("active_model_version", data)
+        self.assertIn("active_calibration_version", data)
 
     def test_frontend_static_mount(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Proof, Not Paper.", response.text)
-        index = self.client.get("/index.html")
-        self.assertEqual(index.status_code, 200)
-        self.assertEqual(index.text, response.text)
-        self.assertEqual(self.client.get("/js/flow.js").status_code, 200)
+        pages = [
+            "/",
+            "/index.html",
+            "/skill-selection.html",
+            "/difficulty-selection.html",
+            "/assessment-setup.html",
+            "/workspace.html",
+            "/evaluation.html",
+            "/passport.html",
+            "/analytics.html",
+            "/js/flow.js",
+            "/js/api.js",
+        ]
+        for p in pages:
+            res = self.client.get(p)
+            self.assertEqual(res.status_code, 200, f"Page {p} returned {res.status_code}")
 
-    def test_challenge_request_validation(self):
-        response = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "expert"})
-        self.assertEqual(response.status_code, 422)
-        unsupported = self.client.post("/api/challenges", json={"skill": "JavaScript", "difficulty": "beginner"})
-        self.assertEqual(unsupported.status_code, 422)
+    def test_assessment_lifecycle_and_one_shot_409(self):
+        # 1. Create assessment
+        create_res = self.client.post("/api/assessment", json={
+            "candidate_id": "api-test-cand-01",
+            "skill": "python",
+            "difficulty": "intermediate"
+        })
+        self.assertEqual(create_res.status_code, 201)
+        asmt = create_res.json()
+        asmt_id = asmt["id"]
+        prob = asmt["problem"]
+        self.assertIn("id", prob)
+        self.assertIn("title", prob)
+        self.assertIn("starter_code", prob)
+        self.assertNotIn("tests", prob, "Hidden tests leaked in public problem view!")
 
-    @patch("app.generate_challenge", return_value=CHALLENGE_TEXT)
-    def test_create_challenge_and_submit_solution(self, mock_challenge):
-        create = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"})
-        self.assertEqual(create.status_code, 201)
-        body = create.json()
-        self.assertEqual(body["title"], "Record Counter")
-        self.assertEqual(body["constraints"], ["Use one pass", "Return an integer"])
-        mock_challenge.assert_called_once()
+        # 2. Get assessment
+        get_res = self.client.get(f"/api/assessment/{asmt_id}")
+        self.assertEqual(get_res.status_code, 200)
+        self.assertEqual(get_res.json()["id"], asmt_id)
 
-        with patch("app.evaluate_solution", return_value=EVALUATION_TEXT):
-            submit = self.client.post(
-                f"/api/assessments/{body['assessment_id']}/submit",
-                json={"solution": "def count_records(records): return len(records)", "time_elapsed_seconds": 12},
-            )
-        self.assertEqual(submit.status_code, 200)
-        self.assertEqual(submit.json()["evaluation"]["efficiency"], 88)
-        evaluate = self.client.post(
-            "/api/evaluate",
-            json={"assessment_id": body["assessment_id"], "solution": "def count_records(records): return len(records)"},
-        )
-        self.assertEqual(evaluate.status_code, 200)
-        passport = self.client.get("/api/passport")
-        self.assertEqual(passport.status_code, 200)
-        self.assertEqual(passport.json()["assessment_id"], body["assessment_id"])
+        # 3. Submit solution
+        prob_row = db.get_problem(prob["id"])
+        ref_sol = prob_row["reference_solution"]
+        submit_res = self.client.post(f"/api/assessment/{asmt_id}/submit", json={
+            "solution": ref_sol,
+            "time_taken": 25.0
+        })
+        self.assertEqual(submit_res.status_code, 200)
+        res_data = submit_res.json()
+        self.assertEqual(res_data["tests_passed"], res_data["tests_total"])
+        self.assertTrue(res_data["overall_score"] > 0)
 
-    def test_unknown_assessment(self):
-        response = self.client.get("/api/assessments/does-not-exist")
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(self.client.get("/api/passport").status_code, 200)
+        # 4. Result retrieval
+        result_res = self.client.get(f"/api/assessment/{asmt_id}/result")
+        self.assertEqual(result_res.status_code, 200)
+        self.assertEqual(result_res.json()["overall_score"], res_data["overall_score"])
 
-    @patch("app.generate_challenge", return_value=CHALLENGE_TEXT)
-    def test_get_stored_assessment(self, mock_challenge):
-        create = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"})
-        assessment_id = create.json()["assessment_id"]
-        stored = self.client.get(f"/api/assessments/{assessment_id}")
-        self.assertEqual(stored.status_code, 200)
-        self.assertEqual(stored.json()["task"], "Write count_records(records).")
+        # 5. One-shot duplicate rejection (HTTP 409)
+        dup_res = self.client.post(f"/api/assessment/{asmt_id}/submit", json={
+            "solution": "# Attempting duplicate submission",
+            "time_taken": 5.0
+        })
+        self.assertEqual(dup_res.status_code, 409)
 
-    def test_submission_validation(self):
-        response = self.client.post("/api/assessments/does-not-exist/submit", json={"solution": ""})
-        self.assertEqual(response.status_code, 422)
+        # 6. Skill Passport retrieval
+        pass_res = self.client.get("/api/passport/api-test-cand-01")
+        self.assertEqual(pass_res.status_code, 200)
+        self.assertTrue(pass_res.json()["verified"])
 
-    def test_default_mock_provider_does_not_call_gemini(self):
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("SKILLPROOF_PROVIDER", None)
-            with patch("services.gemini.generate_text", side_effect=AssertionError("Gemini called in mock mode")):
-                response = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"})
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["title"], "E-Commerce Shopping Cart Calculator")
+    def test_calibration_endpoints(self):
+        # Calibration status
+        status_res = self.client.get("/api/calibration/status")
+        self.assertEqual(status_res.status_code, 200)
+        st = status_res.json()
+        self.assertIn("active_model_version", st)
+        self.assertIn("benchmark_score", st)
+        self.assertIn("observation_count", st)
+        self.assertIn("guardrails", st)
 
-    def test_mock_challenge_changes_with_difficulty(self):
-        titles = []
-        for difficulty in ("beginner", "intermediate", "advanced"):
-            response = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": difficulty})
-            self.assertEqual(response.status_code, 201)
-            titles.append(response.json()["title"])
-            self.assertEqual(response.json()["difficulty"], difficulty)
-        self.assertEqual(len(set(titles)), 3)
+        # Calibration retrain
+        retrain_res = self.client.post("/api/calibration/retrain")
+        self.assertEqual(retrain_res.status_code, 200)
+        rt = retrain_res.json()
+        self.assertIn("success", rt)
+        self.assertIn("status", rt)
 
-    @patch("app.generate_challenge", side_effect=RuntimeError("429 RESOURCE_EXHAUSTED"))
-    def test_provider_failure_falls_back_to_mock_challenge(self, mock_generator):
-        response = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "advanced"})
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["title"], "Concurrent Token Bucket Rate Limiter")
-
-    @patch("app.generate_challenge", side_effect=RuntimeError("429 RESOURCE_EXHAUSTED"))
-    def test_provider_failure_falls_back_to_mock_evaluation(self, mock_generator):
-        assessment = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()
-        with patch("app.evaluate_solution", side_effect=RuntimeError("429 RESOURCE_EXHAUSTED")):
-            response = self.client.post(
-                f"/api/assessments/{assessment['assessment_id']}/submit",
-                json={"solution": "def process_cart(items, category_discounts): return {}"},
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json()["evaluation"]["overall_score"], int)
-
-    @patch.dict(os.environ, {"SKILLPROOF_PROVIDER": "gemini"})
-    @patch("app.generate_challenge", return_value=CHALLENGE_TEXT)
-    def test_gemini_quota_failure_returns_error(self, mock_challenge):
-        assessment = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()
-        with patch("app.evaluate_solution", side_effect=RuntimeError("429 RESOURCE_EXHAUSTED")):
-            response = self.client.post(
-                f"/api/assessments/{assessment['assessment_id']}/submit",
-                json={"solution": "def count_records(records): return len(records)"},
-            )
-        self.assertEqual(response.status_code, 429)
-        self.assertEqual(response.json()["detail"], "Gemini API limit reached. Please try again later.")
-
-    def test_mock_scores_strong_solution_higher_than_incomplete_solution(self):
-        strong = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()
-        strong_solution = """
-def process_cart(items, category_discounts, store_discount_threshold=100):
-    subtotal = 0
-    total_quantity = 0
-    for item in items:
-        quantity = item['quantity']
-        if quantity <= 0:
-            continue
-        total_quantity += quantity
-        discount = category_discounts.get(item['category'], 0)
-        subtotal += item['price'] * quantity * (1 - discount / 100)
-    store_discount = subtotal * 0.1 if subtotal > store_discount_threshold else 0
-    tax = (subtotal - store_discount) * 0.08
-    total = max(0, subtotal - store_discount + tax)
-    return {'subtotal': round(subtotal, 2), 'total_quantity': total_quantity,
-            'discount': round(store_discount, 2), 'tax': round(tax, 2), 'total': round(total, 2)}
-"""
-        strong_result = self.client.post(
-            f"/api/assessments/{strong['assessment_id']}/submit",
-            json={"solution": strong_solution, "time_elapsed_seconds": 120},
-        )
-        weak = self.client.post("/api/challenges", json={"skill": "Python", "difficulty": "beginner"}).json()
-        weak_result = self.client.post(
-            f"/api/assessments/{weak['assessment_id']}/submit",
-            json={"solution": "def process_cart(items, category_discounts):\n    return {}", "time_elapsed_seconds": 30},
-        )
-        self.assertEqual(strong_result.status_code, 200)
-        self.assertEqual(weak_result.status_code, 200)
-        self.assertGreater(strong_result.json()["evaluation"]["overall_score"], weak_result.json()["evaluation"]["overall_score"])
+    def test_obsolete_legacy_routes_isolated(self):
+        res = self.client.get("/api/challenges")
+        self.assertEqual(res.status_code, 404)
+        res2 = self.client.get("/api/assessments/dummy-id")
+        self.assertEqual(res2.status_code, 404)
 
 
 if __name__ == "__main__":
