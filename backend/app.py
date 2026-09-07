@@ -34,6 +34,7 @@ from services.calibration import (
     get_calibration_status,
     record_validated_observation,
     trigger_calibration_retrain,
+    validate_observation_quality_gate,
 )
 from services.challenge_generator import (
     generate_challenge,
@@ -395,12 +396,29 @@ def get_skill_passport(candidate_id: str) -> SkillPassportResponse:
 @app.post("/api/calibration/observation", status_code=status.HTTP_201_CREATED)
 def store_calibration_observation(payload: CalibrationObservationRequest) -> Dict[str, Any]:
     """Manually ingests an externally validated observation into the learning pool."""
-    obs_id = db.save_calibration_observation(
+    is_valid, reason, validated_features = validate_observation_quality_gate(
         assessment_id=payload.assessment_id,
         problem_id=payload.problem_id,
         features=payload.features,
         result_metrics=payload.result_metrics,
         validity_flags=payload.validity_flags,
+    )
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Observation rejected by quality gate: {reason}",
+        )
+
+    asmt = db.get_assessment(payload.assessment_id)
+    cand_id = asmt.get("candidate_id", "") if asmt else ""
+
+    obs_id = db.save_calibration_observation(
+        assessment_id=payload.assessment_id,
+        problem_id=payload.problem_id,
+        features=validated_features,
+        result_metrics=payload.result_metrics,
+        validity_flags=payload.validity_flags,
+        candidate_id=cand_id,
     )
     return {"status": "recorded", "observation_id": obs_id}
 
@@ -437,7 +455,7 @@ def trigger_retrain() -> RetrainResponse:
         return RetrainResponse(
             success=False,
             status="rejected",
-            proposed_version="v1.1",
+            proposed_version=guardrail_results.get("proposed_version", "v1.1"),
             benchmark_score=guardrail_results.get("proposed_benchmark_score", 0.0),
             previous_benchmark_score=prev_bench,
             guardrail_results=guardrail_results,

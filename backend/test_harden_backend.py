@@ -55,14 +55,26 @@ def test_api_contract_routes_exist():
     assert r_pass.json()["candidate_id"] == cand_id
 
     # 7. POST /api/calibration/observation
+    r_asmt_obs = client.post("/api/assessment", json={"skill": "python", "difficulty": "intermediate"})
+    obs_asm_id = r_asmt_obs.json()["id"]
+    obs_prob_id = r_asmt_obs.json()["problem"]["id"]
     r_obs = client.post(
         "/api/calibration/observation",
         json={
-            "assessment_id": asm_id,
-            "problem_id": "test_problem",
-            "features": {"f1": 1.0},
-            "result_metrics": {"overall_score": 85.0},
-            "validity_flags": {"completed_submission": True},
+            "assessment_id": obs_asm_id,
+            "problem_id": obs_prob_id,
+            "features": {
+                "tests_passed_ratio": 1.0,
+                "runtime_ms": 15.0,
+                "lines_of_code": 12,
+                "ast_nodes": 45,
+                "cyclomatic_complexity": 2,
+                "attempt_duration_sec": 300.0,
+                "has_type_annotations": 1,
+                "has_docstring": 1,
+            },
+            "result_metrics": {"overall_score": 85.0, "tests_passed": 5, "tests_total": 5},
+            "validity_flags": {"completed_submission": True, "quality_gate_passed": True},
         },
     )
     assert r_obs.status_code == 201
@@ -308,61 +320,79 @@ def test_problem_reference_solution_self_validation():
 
 def test_calibration_observation_and_guardrails():
     """Verify observation ingestion, quality gates, and guardrail enforcement during retrain."""
-    status_data = get_calibration_status()
-    assert "guardrails" in status_data
-    assert status_data["guardrails"]["min_observations_required"] == 3
+    import tempfile
+    from pathlib import Path
+    from ml.model import set_active_model
+    from ml.train import bootstrap_v1_model
 
-    # Retrain with insufficient observations should fail guardrails safely
-    retrain_res = client.post("/api/calibration/retrain")
-    assert retrain_res.status_code == 200
-    retrain_data = retrain_res.json()
-    # If observations are < 3, must be rejected
-    if status_data["observation_count"] < 3:
+    old_db = db.DB_PATH
+    temp_dir = tempfile.mkdtemp()
+    db.DB_PATH = Path(temp_dir) / "test_harden_calib.sqlite3"
+    db.init_db()
+    set_active_model(None)
+    m1 = bootstrap_v1_model()
+    set_active_model(m1)
+
+    try:
+        status_data = get_calibration_status()
+        assert "guardrails" in status_data
+        assert status_data["guardrails"]["min_observations_required"] == 3
+
+        # Retrain with insufficient observations should fail guardrails safely
+        retrain_res = client.post("/api/calibration/retrain")
+        assert retrain_res.status_code == 200
+        retrain_data = retrain_res.json()
         assert retrain_data["success"] is False
         assert retrain_data["status"] == "rejected"
         assert "Insufficient observations" in retrain_data["message"]
 
-    # Record validated observations
-    for i in range(3):
-        obs_res = client.post(
-            "/api/calibration/observation",
-            json={
-                "assessment_id": f"asm-test-calib-{i}",
-                "problem_id": "array_frequency_k",
-                "features": {
-                    "tests_passed_ratio": 1.0,
-                    "runtime_ms": 15.0,
-                    "lines_of_code": 12,
-                    "ast_nodes": 45,
-                    "cyclomatic_complexity": 2,
-                    "attempt_duration_sec": 300.0,
-                    "has_type_annotations": 1,
-                    "has_docstring": 1,
+        # Record validated observations
+        for i in range(3):
+            r_create_obs = client.post("/api/assessment", json={"skill": "python", "difficulty": "intermediate"})
+            cur_asmt_id = r_create_obs.json()["id"]
+            cur_prob_id = r_create_obs.json()["problem"]["id"]
+            obs_res = client.post(
+                "/api/calibration/observation",
+                json={
+                    "assessment_id": cur_asmt_id,
+                    "problem_id": cur_prob_id,
+                    "features": {
+                        "tests_passed_ratio": 0.8 + (i % 2) * 0.2,
+                        "runtime_ms": 15.0,
+                        "lines_of_code": 15,
+                        "ast_nodes": 50,
+                        "cyclomatic_complexity": 2,
+                        "attempt_duration_sec": 120.0,
+                        "has_type_annotations": 1,
+                        "has_docstring": 1,
+                    },
+                    "result_metrics": {
+                        "overall_score": 82.0 + i * 3.0,
+                        "tests_passed": 4 + (i % 2),
+                        "tests_total": 5,
+                    },
+                    "validity_flags": {
+                        "completed_submission": True,
+                        "quality_gate_passed": True,
+                        "non_trivial_runtime": True,
+                        "sufficient_duration": True,
+                    },
                 },
-                "result_metrics": {
-                    "overall_score": 88.0,
-                    "tests_passed": 5,
-                    "tests_total": 5,
-                },
-                "validity_flags": {
-                    "completed_submission": True,
-                    "non_trivial_runtime": True,
-                    "sufficient_duration": True,
-                },
-            },
-        )
-        assert obs_res.status_code == 201
-        assert "observation_id" in obs_res.json()
+            )
+            assert obs_res.status_code == 201
+            assert "observation_id" in obs_res.json()
 
-    # Now with >= 3 observations, trigger retraining
-    retrain_res2 = client.post("/api/calibration/retrain")
-    assert retrain_res2.status_code == 200
-    retrain_data2 = retrain_res2.json()
-    assert retrain_data2["guardrail_results"]["observation_count_check"] is True
-    assert retrain_data2["guardrail_results"]["frozen_benchmark_check"] is True
-    assert retrain_data2["guardrail_results"]["drift_guardrail_check"] is True
-    assert retrain_data2["success"] is True
-    assert retrain_data2["status"] == "activated"
+        # Now with >= 3 observations, trigger retraining
+        retrain_res2 = client.post("/api/calibration/retrain")
+        assert retrain_res2.status_code == 200
+        retrain_data2 = retrain_res2.json()
+        assert retrain_data2["guardrail_results"]["observation_count_check"] is True
+        assert retrain_data2["guardrail_results"]["frozen_benchmark_check"] is True
+        assert retrain_data2["guardrail_results"]["drift_guardrail_check"] is True
+        assert retrain_data2["success"] is True
+        assert retrain_data2["status"] == "activated"
+    finally:
+        db.DB_PATH = old_db
 
 
 if __name__ == "__main__":

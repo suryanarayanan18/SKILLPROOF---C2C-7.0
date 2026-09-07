@@ -17,6 +17,8 @@ BENCHMARK_PATH = Path(__file__).resolve().parent.parent / "data" / "benchmark.js
 MIN_OBSERVATIONS_FOR_RETRAIN = 3
 MAX_SCORE_DRIFT_PER_UPDATE = 15.0
 MIN_BENCHMARK_SCORE_THRESHOLD = 75.0  # Normalized 0-100 benchmark metric
+MAX_ALLOWED_BENCHMARK_DEGRADATION = 2.0  # Max score drop vs current active model
+MAX_OBSERVATIONS_PER_CANDIDATE = 2  # Anti-domination limit
 
 
 def load_frozen_benchmark() -> Tuple[np.ndarray, np.ndarray]:
@@ -49,6 +51,7 @@ def evaluate_on_benchmark(model: SkillCalibrationModel) -> Tuple[float, Dict[str
     preds = model.predict(X_bench)
     rmse = float(np.sqrt(mean_squared_error(y_bench, preds)))
     r2 = float(r2_score(y_bench, preds))
+    median_ae = float(np.median(np.abs(y_bench - preds)))
 
     # Convert RMSE into a 0-100 score (RMSE of 0 -> 100; RMSE of 25 -> 75; RMSE of 50 -> 50)
     benchmark_score = max(0.0, min(100.0, round(100.0 - rmse, 2)))
@@ -57,6 +60,7 @@ def evaluate_on_benchmark(model: SkillCalibrationModel) -> Tuple[float, Dict[str
         "benchmark_score": benchmark_score,
         "rmse": round(rmse, 2),
         "r2_score": round(r2, 4),
+        "median_ae": round(median_ae, 2),
         "samples_evaluated": len(y_bench),
     }
     return benchmark_score, metrics
@@ -101,6 +105,7 @@ def generate_seed_training_data() -> Tuple[np.ndarray, np.ndarray]:
 
 def bootstrap_v1_model() -> SkillCalibrationModel:
     """Initializes and saves the cold-start v1.0 calibration model."""
+    from datetime import datetime, timezone
     X_seed, y_seed = generate_seed_training_data()
     model = SkillCalibrationModel(version="v1.0")
     model.fit(X_seed, y_seed)
@@ -108,15 +113,20 @@ def bootstrap_v1_model() -> SkillCalibrationModel:
     bench_score, metrics = evaluate_on_benchmark(model)
     model.benchmark_score = bench_score
     model.metadata = {
+        "version": "v1.0",
+        "previous_model_version": None,
+        "benchmark_score": bench_score,
+        "training_observation_count": len(X_seed),
+        "validation_metrics": metrics,
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "description": "Cold-start calibration model v1.0 trained on curated baseline cohort.",
-        "metrics": metrics,
     }
     model.save("v1.0")
 
     # Record in db
     import db
     db.init_db()
-    db.save_model_version("v1.0", bench_score, metrics, status="active")
+    db.save_model_version("v1.0", bench_score, model.metadata, status="active")
     return model
 
 
@@ -131,35 +141,55 @@ def train_and_validate_new_version(
 
     Guardrails checked:
     1. Observation count >= MIN_OBSERVATIONS_FOR_RETRAIN
-    2. Candidate assessment validation checks passed (quality gate)
-    3. Benchmark performance does not drop below threshold or current model
-    4. Maximum score movement per calibration update is capped
+    2. Quality gate passed and anti-domination cap (<= 2 observations per candidate)
+    3. Benchmark performance does not drop below threshold (< 75.0) or degrade (> 2.0 pts)
+    4. Maximum score movement per calibration update is capped (median drift <= 15.0)
     """
+    from datetime import datetime, timezone
+
     guardrail_results: Dict[str, Any] = {
+        "proposed_version": proposed_version,
         "observation_count_check": False,
         "frozen_benchmark_check": False,
         "drift_guardrail_check": False,
         "published": False,
     }
 
-    # 1. Observation count check
+    # 1. Quality gate filter
     valid_observations = [
         obs for obs in observations
         if obs.get("validity_flags", {}).get("completed_submission", True)
+        and obs.get("validity_flags", {}).get("quality_gate_passed", True)
+        and not obs.get("validity_flags", {}).get("rejected", False)
     ]
-    guardrail_results["valid_observation_count"] = len(valid_observations)
-    if len(valid_observations) < MIN_OBSERVATIONS_FOR_RETRAIN:
+
+    # Anti-domination guardrail: Cap observations per candidate (Section 7)
+    candidate_counts: Dict[str, int] = {}
+    capped_observations: List[Dict[str, Any]] = []
+    for obs in valid_observations:
+        cand_id = obs.get("candidate_id") or obs.get("assessment_id", "anon")
+        count = candidate_counts.get(cand_id, 0)
+        if count < MAX_OBSERVATIONS_PER_CANDIDATE:
+            candidate_counts[cand_id] = count + 1
+            capped_observations.append(obs)
+
+    guardrail_results["valid_observation_count"] = len(capped_observations)
+    guardrail_results["raw_valid_observation_count"] = len(valid_observations)
+    guardrail_results["unique_candidate_count"] = len(candidate_counts)
+
+    if len(capped_observations) < MIN_OBSERVATIONS_FOR_RETRAIN:
         guardrail_results["reason"] = (
-            f"Insufficient observations: {len(valid_observations)} < {MIN_OBSERVATIONS_FOR_RETRAIN}"
+            f"Insufficient observations: {len(capped_observations)} valid observations after candidate capping "
+            f"(minimum {MIN_OBSERVATIONS_FOR_RETRAIN} required)."
         )
         return False, current_active_model, guardrail_results
     guardrail_results["observation_count_check"] = True
 
-    # 2. Build training dataset (Seed base + live validated observations)
+    # 2. Build training dataset (Seed base + live capped validated observations)
     X_seed, y_seed = generate_seed_training_data()
     X_live = []
     y_live = []
-    for obs in valid_observations:
+    for obs in capped_observations:
         vec = extract_feature_vector(obs)
         res_metrics = obs.get("result_metrics", {})
         score = float(res_metrics.get("overall_score", 70.0))
@@ -178,41 +208,60 @@ def train_and_validate_new_version(
     guardrail_results["proposed_benchmark_score"] = bench_score
     guardrail_results["current_benchmark_score"] = current_active_model.benchmark_score
 
-    # Check against degradation threshold
+    # Check against absolute threshold
     if bench_score < MIN_BENCHMARK_SCORE_THRESHOLD:
         guardrail_results["reason"] = (
-            f"Benchmark score {bench_score} fell below minimum safety threshold {MIN_BENCHMARK_SCORE_THRESHOLD}."
+            f"Benchmark score {bench_score:.2f} fell below minimum safety threshold {MIN_BENCHMARK_SCORE_THRESHOLD}."
         )
         return False, current_active_model, guardrail_results
+
+    # Check against material degradation
+    if bench_score < (current_active_model.benchmark_score - MAX_ALLOWED_BENCHMARK_DEGRADATION):
+        guardrail_results["reason"] = (
+            f"Benchmark performance degraded materially: candidate score {bench_score:.2f} is "
+            f"more than {MAX_ALLOWED_BENCHMARK_DEGRADATION} points below current score {current_active_model.benchmark_score:.2f}."
+        )
+        return False, current_active_model, guardrail_results
+
     guardrail_results["frozen_benchmark_check"] = True
 
-    # 5. Drift cap check: test prediction drift on benchmark set
-    X_bench, _ = load_frozen_benchmark()
+    # 5. Drift cap check: test prediction drift on benchmark set with robust median
+    X_bench, y_bench = load_frozen_benchmark()
     current_preds = current_active_model.predict(X_bench)
     candidate_preds = candidate_model.predict(X_bench)
     median_drift = float(np.median(np.abs(candidate_preds - current_preds)))
+    median_ae = float(np.median(np.abs(y_bench - candidate_preds)))
+
     guardrail_results["median_drift"] = round(median_drift, 2)
+    guardrail_results["median_ae"] = round(median_ae, 2)
+    bench_metrics["median_drift"] = round(median_drift, 2)
+    bench_metrics["median_ae"] = round(median_ae, 2)
 
     if median_drift > MAX_SCORE_DRIFT_PER_UPDATE:
         guardrail_results["reason"] = (
-            f"Median drift {median_drift} exceeds safety cap of {MAX_SCORE_DRIFT_PER_UPDATE} points."
+            f"Median drift {median_drift:.2f} exceeds safety cap of {MAX_SCORE_DRIFT_PER_UPDATE} points."
         )
         return False, current_active_model, guardrail_results
     guardrail_results["drift_guardrail_check"] = True
 
     # All guardrails passed -> Publish new model version!
+    now_iso = datetime.now(timezone.utc).isoformat()
     candidate_model.benchmark_score = bench_score
     candidate_model.metadata = {
+        "version": proposed_version,
+        "previous_model_version": current_active_model.version,
+        "benchmark_score": bench_score,
+        "training_observation_count": len(capped_observations),
+        "candidate_count": len(candidate_counts),
+        "validation_metrics": bench_metrics,
+        "created_at": now_iso,
         "description": f"Continuous improvement calibration model {proposed_version}.",
-        "metrics": bench_metrics,
-        "median_drift": median_drift,
-        "observations_count": len(valid_observations),
     }
     candidate_model.save(proposed_version)
     set_active_model(candidate_model)
 
     import db
-    db.save_model_version(proposed_version, bench_score, bench_metrics, status="active")
+    db.save_model_version(proposed_version, bench_score, candidate_model.metadata, status="active")
 
     guardrail_results["published"] = True
     return True, candidate_model, guardrail_results

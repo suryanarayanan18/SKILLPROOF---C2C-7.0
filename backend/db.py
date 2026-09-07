@@ -72,6 +72,7 @@ def init_db() -> None:
         CREATE TABLE IF NOT EXISTS calibration_observations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             assessment_id TEXT NOT NULL,
+            candidate_id TEXT NOT NULL DEFAULT '',
             problem_id TEXT NOT NULL,
             features TEXT NOT NULL,          -- JSON list/dict of features
             result_metrics TEXT NOT NULL,    -- JSON dict of metrics
@@ -95,6 +96,12 @@ def init_db() -> None:
     existing_cols = [row["name"] for row in cursor.fetchall()]
     if "seed_problem_id" not in existing_cols:
         cursor.execute("ALTER TABLE problems ADD COLUMN seed_problem_id TEXT NOT NULL DEFAULT ''")
+
+    # Ensure candidate_id column exists on calibration_observations
+    cursor.execute("PRAGMA table_info(calibration_observations)")
+    existing_obs_cols = [row["name"] for row in cursor.fetchall()]
+    if "candidate_id" not in existing_obs_cols:
+        cursor.execute("ALTER TABLE calibration_observations ADD COLUMN candidate_id TEXT NOT NULL DEFAULT ''")
 
     conn.close()
 
@@ -338,27 +345,49 @@ def get_candidate_results(candidate_id: str) -> List[Dict[str, Any]]:
     return results
 
 
+def observation_exists_for_assessment(assessment_id: str) -> bool:
+    """Checks if a calibration observation already exists for the given assessment."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM calibration_observations WHERE assessment_id = ? LIMIT 1", (assessment_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row is not None
+
+
 def save_calibration_observation(
     assessment_id: str,
     problem_id: str,
     features: Any,
     result_metrics: Dict[str, Any],
     validity_flags: Dict[str, Any],
+    candidate_id: str = "",
 ) -> int:
     conn = get_db_connection()
     now_iso = datetime.now(timezone.utc).isoformat()
+    if not candidate_id:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT candidate_id FROM assessments WHERE id = ?", (assessment_id,))
+            asmt_row = cursor.fetchone()
+            if asmt_row and asmt_row["candidate_id"]:
+                candidate_id = asmt_row["candidate_id"]
+        except Exception:
+            pass
+
     try:
         conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute(
             """
             INSERT INTO calibration_observations (
-                assessment_id, problem_id, features, result_metrics,
+                assessment_id, candidate_id, problem_id, features, result_metrics,
                 validity_flags, timestamp
-            ) VALUES (?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 assessment_id,
+                candidate_id,
                 problem_id,
                 json.dumps(features),
                 json.dumps(result_metrics),

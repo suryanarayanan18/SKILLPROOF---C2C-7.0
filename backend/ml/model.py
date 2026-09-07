@@ -83,7 +83,19 @@ def get_active_model() -> SkillCalibrationModel:
     """Returns the currently active TinyML calibration model in memory."""
     global _ACTIVE_MODEL
     if _ACTIVE_MODEL is None:
-        # Try loading v1.0, or initialize and fit default cold-start v1.0
+        try:
+            import db
+            active_row = db.get_active_model_version()
+            if active_row and active_row.get("version"):
+                active_ver = active_row["version"]
+                active_file = VERSIONS_DIR / f"{active_ver}.joblib"
+                if active_file.exists():
+                    _ACTIVE_MODEL = SkillCalibrationModel.load(active_ver)
+                    return _ACTIVE_MODEL
+        except Exception:
+            pass
+
+        # Fallback to loading v1.0, or initialize and fit default cold-start v1.0
         v1_path = VERSIONS_DIR / "v1.0.joblib"
         if v1_path.exists():
             try:
