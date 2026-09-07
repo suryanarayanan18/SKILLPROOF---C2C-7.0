@@ -132,6 +132,7 @@ class CodeQualityMetrics(BaseModel):
     has_type_annotations: bool
     has_docstring: bool
     clean_naming: bool
+    syntax_valid: bool = True
 
 
 class ResultBreakdown(BaseModel):

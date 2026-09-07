@@ -204,17 +204,17 @@
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Score</span>
-<span class="font-headline-md text-headline-md text-secondary">82<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
+<span id="passport-stat-current" class="font-headline-md text-headline-md text-secondary">--<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Verified</span>
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Progression</span>
-<span class="font-headline-md text-headline-md text-primary">+21</span>
+<span id="passport-stat-progression" class="font-headline-md text-headline-md text-primary">--</span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Pts delta</span>
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Peak Benchmark</span>
-<span class="font-headline-md text-headline-md text-on-surface">82<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
+<span id="passport-stat-peak" class="font-headline-md text-headline-md text-on-surface">--<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Attained</span>
 </div>
 </div>
@@ -223,20 +223,20 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
 <div>
 <h2 class="font-title-md text-title-md text-on-surface">Demonstrated Skill Trajectory</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Iterative skill acquisition across progressive challenge complexities</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Iterative skill acquisition across authenticated assessment sessions</p>
 </div>
 <div class="flex items-center gap-space-md font-code-sm text-code-sm">
 <span class="inline-flex items-center gap-1.5 text-secondary">
 <span class="w-2.5 h-0.5 bg-secondary rounded-full"></span> Candidate
               </span>
 <span class="inline-flex items-center gap-1.5 text-outline-variant">
-<span class="w-2.5 h-0.5 bg-outline-variant rounded-full"></span> Industry Cohort
+<span class="w-2.5 h-0.5 bg-outline-variant rounded-full"></span> Target Benchmark
               </span>
 </div>
 </div>
 <!-- Inline Vector Trajectory Graph (SVG under 2KB) -->
 <div class="w-full bg-surface-container-lowest/80 rounded-lg p-space-md">
-<svg class="w-full h-44 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 600 160">
+<svg id="passport-trajectory-svg" class="w-full h-44 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 600 160">
 <defs>
 <linearGradient id="curve-area" x1="0" x2="0" y1="0" y2="1">
 <stop offset="0%" stop-color="#ffb4a5" stop-opacity="0.25"></stop>
@@ -252,24 +252,10 @@
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="18">100 Pts</text>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="58">80 Pts</text>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="98">60 Pts</text>
-<!-- Cohort Baseline Path (Static Muted Blue/Slate) -->
-<path d="M 80 102 Q 300 95 520 88" fill="none" stroke="#534344" stroke-dasharray="4 4" stroke-width="2"></path>
-<!-- Shaded gradient under curve -->
-<path d="M 80 98 L 80 98 Q 300 76 520 54 L 520 140 L 80 140 Z" fill="url(#curve-area)"></path>
-<!-- Main Candidate Trajectory Spline -->
-<path d="M 80 98 Q 300 76 520 54" fill="none" stroke="#ffb4a5" stroke-linecap="round" stroke-width="3"></path>
-<!-- Node 1: Attempt 1 (61) -->
-<circle cx="80" cy="98" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
-<text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="80" y="122">Attempt 1</text>
-<text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="80" y="86">61 pts</text>
-<!-- Node 2: Attempt 2 (72) -->
-<circle cx="300" cy="76" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
-<text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="300" y="122">Attempt 2</text>
-<text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="300" y="64">72 pts</text>
-<!-- Node 3: Attempt 3 (82) Current -->
-<circle cx="520" cy="54" fill="#ffb4a5" r="6.5" stroke="#131314" stroke-width="2"></circle>
-<text fill="#ffdadc" font-family="Geist" font-size="11" font-weight="600" text-anchor="middle" x="520" y="122">Attempt 3 (Latest)</text>
-<text fill="#ffdadc" font-family="JetBrains Mono" font-size="12" font-weight="700" text-anchor="middle" x="520" y="40">82 pts</text>
+<!-- Target Baseline Guide -->
+<line stroke="#534344" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="600" y1="80" y2="80"></line>
+<!-- Dynamic Candidate Trajectory Container -->
+<g id="passport-trajectory-dynamic"></g>
 </svg>
 </div>
 </div>
@@ -277,31 +263,10 @@
 <div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md">
 <div class="flex items-center justify-between">
 <h2 class="font-title-md text-title-md text-on-surface">Strength &amp; Calibrated Competency Profile</h2>
-<span class="font-label-md text-label-md text-on-surface-variant">Rubric v3.2</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Deterministic Rubric</span>
 </div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Problem Solving</span>
-<span class="px-2 py-0.5 rounded bg-primary-container/30 text-primary font-title-md text-label-md">Excellent · 91%</span>
+<div id="passport-strength-profile-matrix" class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
 </div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Understanding</span>
-<span class="px-2 py-0.5 rounded bg-primary-container/30 text-primary font-title-md text-label-md">Excellent · 90%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Correctness</span>
-<span class="px-2 py-0.5 rounded bg-secondary-container/40 text-secondary font-title-md text-label-md">Strong · 88%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Efficiency</span>
-<span class="px-2 py-0.5 rounded bg-secondary-container/40 text-secondary font-title-md text-label-md">Strong · 84%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between sm:col-span-2">
-<div class="flex flex-col">
-<span class="font-body-md text-body-md text-on-surface">Code Quality &amp; Maintainability</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Recommended for minor linting &amp; type hint precision</span>
-</div>
-<span class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant font-title-md text-label-md">Developing · 76%</span>
 </div>
 </div>
 </div>
@@ -487,7 +452,7 @@
         hashEl.textContent = `${passport.passport_id} · Model ${passport.evaluation_model_version}`;
       }
 
-      // 4. Competency Matrix
+      // 4. Competency Matrix & Progress Bars
       if (passport.competencies) {
         const comps = passport.competencies;
         document.querySelectorAll('.flex.justify-between.items-center.text-body-sm').forEach((row) => {
@@ -501,6 +466,128 @@
             if (bar) bar.style.width = `${val}%`;
           }
         });
+      }
+
+      // Populate Top Telemetry Stat Cards
+      const currentStatEl = document.getElementById('passport-stat-current');
+      if (currentStatEl) currentStatEl.innerHTML = `${scoreVal}<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span>`;
+
+      // Fetch Candidate History for Real Trajectory & Delta
+      let historyRecords = [];
+      try {
+        historyRecords = await SkillProofApi.getHistory(candId);
+      } catch (e) {
+        console.warn("Could not fetch history for passport trajectory:", e);
+      }
+
+      const validAttempts = (Array.isArray(historyRecords) ? historyRecords : [])
+        .filter(h => h.submitted_at && h.overall_score !== null)
+        .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+      const peakScore = validAttempts.length > 0 
+        ? Math.round(Math.max(...validAttempts.map(h => h.overall_score || 0)))
+        : scoreVal;
+
+      const peakStatEl = document.getElementById('passport-stat-peak');
+      if (peakStatEl) peakStatEl.innerHTML = `${peakScore}<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span>`;
+
+      const progStatEl = document.getElementById('passport-stat-progression');
+      if (progStatEl) {
+        if (validAttempts.length >= 2) {
+          const firstScore = Math.round(validAttempts[0].overall_score || 0);
+          const latestScore = Math.round(validAttempts[validAttempts.length - 1].overall_score || 0);
+          const diff = latestScore - firstScore;
+          progStatEl.textContent = (diff >= 0 ? "+" : "") + diff;
+        } else if (validAttempts.length === 1) {
+          progStatEl.textContent = "0";
+        } else {
+          progStatEl.textContent = "--";
+        }
+      }
+
+      // Render Dynamic Trajectory on SVG
+      const trajContainer = document.getElementById('passport-trajectory-dynamic');
+      if (trajContainer) {
+        const attemptsToPlot = validAttempts.length > 0 ? validAttempts : [{ overall_score: scoreVal, assessment_id: passport.passport_id }];
+        const count = attemptsToPlot.length;
+
+        function calcTrajY(s) {
+          const clamped = Math.max(0, Math.min(100, s));
+          return Math.round(140 - (clamped / 100) * 120);
+        }
+
+        const pts = attemptsToPlot.map((att, idx) => {
+          const x = count === 1 ? 300 : Math.round(80 + (idx / (count - 1)) * 440);
+          const y = calcTrajY(Math.round(att.overall_score || 0));
+          return { x, y, score: Math.round(att.overall_score || 0), idx: idx + 1, isLatest: idx === count - 1 };
+        });
+
+        let svgHtml = '';
+        if (pts.length > 1) {
+          const lineD = 'M ' + pts.map(p => `${p.x} ${p.y}`).join(' L ');
+          const areaD = `${lineD} L ${pts[pts.length - 1].x} 140 L ${pts[0].x} 140 Z`;
+          svgHtml += `<path d="${areaD}" fill="url(#curve-area)"></path>`;
+          svgHtml += `<path d="${lineD}" fill="none" stroke="#ffb4a5" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>`;
+        }
+
+        pts.forEach(p => {
+          if (p.isLatest) {
+            svgHtml += `
+              <circle cx="${p.x}" cy="${p.y}" fill="#ffb4a5" r="6.5" stroke="#131314" stroke-width="2"></circle>
+              <text fill="#ffdadc" font-family="Geist" font-size="11" font-weight="600" text-anchor="middle" x="${p.x}" y="${p.y + 24}">Attempt ${p.idx}${pts.length > 1 ? ' (Latest)' : ''}</text>
+              <text fill="#ffdadc" font-family="JetBrains Mono" font-size="12" font-weight="700" text-anchor="middle" x="${p.x}" y="${p.y - 12}">${p.score} pts</text>
+            `;
+          } else {
+            svgHtml += `
+              <circle cx="${p.x}" cy="${p.y}" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
+              <text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="${p.x}" y="${p.y + 24}">Attempt ${p.idx}</text>
+              <text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="${p.x}" y="${p.y - 12}">${p.score} pts</text>
+            `;
+          }
+        });
+
+        trajContainer.innerHTML = svgHtml;
+      }
+
+      // Render Strength & Calibrated Competency Profile
+      const matrixEl = document.getElementById('passport-strength-profile-matrix');
+      if (matrixEl && passport.competencies) {
+        const comps = passport.competencies;
+        const entries = [
+          { name: 'Problem Solving', key: 'Problem Solving', val: Math.round(comps['Problem Solving'] || 0) },
+          { name: 'Understanding', key: 'Algorithmic Thinking', val: Math.round(comps['Algorithmic Thinking'] || 0) },
+          { name: 'Correctness', key: 'Correctness', val: Math.round(comps['Correctness'] || 0) },
+          { name: 'Efficiency', key: 'Efficiency', val: Math.round(comps['Efficiency'] || 0) },
+          { name: 'Code Quality & Maintainability', key: 'Code Quality', val: Math.round(comps['Code Quality'] || 0), full: true },
+        ];
+
+        function getGrade(v) {
+          if (v >= 90) return { label: 'Excellent', cls: 'bg-primary-container/30 text-primary' };
+          if (v >= 75) return { label: 'Strong', cls: 'bg-secondary-container/40 text-secondary' };
+          if (v >= 50) return { label: 'Proficient', cls: 'bg-surface-container-high text-on-surface' };
+          return { label: 'Developing', cls: 'bg-surface-container-high text-on-surface-variant' };
+        }
+
+        matrixEl.innerHTML = entries.map(e => {
+          const g = getGrade(e.val);
+          if (e.full) {
+            return `
+              <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between sm:col-span-2">
+                <div class="flex flex-col">
+                  <span class="font-body-md text-body-md text-on-surface">${e.name}</span>
+                  <span class="font-body-sm text-body-sm text-on-surface-variant">Deterministic AST & sandbox execution audit</span>
+                </div>
+                <span class="px-2.5 py-1 rounded ${g.cls} font-title-md text-label-md">${g.label} · ${e.val}%</span>
+              </div>
+            `;
+          }
+          return `
+            <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
+              <span class="font-body-md text-body-md text-on-surface">${e.name}</span>
+              <span class="px-2 py-0.5 rounded ${g.cls} font-title-md text-label-md">${g.label} · ${e.val}%</span>
+            </div>
+          `;
+        }).join('');
       }
 
       // 5. Evidence Section

@@ -17,10 +17,11 @@ def analyze_code_structure(code: str) -> Dict[str, Any]:
         return {
             "lines_of_code": loc,
             "ast_nodes": 0,
-            "cyclomatic_complexity": 1,
+            "cyclomatic_complexity": 0,
             "has_type_annotations": False,
             "has_docstring": False,
             "clean_naming": False,
+            "syntax_valid": False,
         }
 
     # Count nodes
@@ -61,6 +62,7 @@ def analyze_code_structure(code: str) -> Dict[str, Any]:
         "has_type_annotations": has_annotations,
         "has_docstring": has_docstring,
         "clean_naming": clean_naming_ratio,
+        "syntax_valid": True,
     }
 
 
@@ -77,10 +79,16 @@ def evaluate_execution_metrics(
     test_results = raw_execution.get("test_results", [])
     wall_time = raw_execution.get("wall_time", 0.0)
     memory_mb = raw_execution.get("memory_mb", 12.0)
+    raw_error = raw_execution.get("error")
 
     # Average runtime per test in ms
     test_runtimes = [t.get("runtime_ms", 0.0) for t in test_results if "runtime_ms" in t]
     avg_test_runtime_ms = (sum(test_runtimes) / len(test_runtimes)) if test_runtimes else 0.0
+
+    has_syntax_error = bool(
+        (not code_metrics.get("syntax_valid", True))
+        or (raw_error and "SyntaxError" in raw_error)
+    )
 
     return {
         "tests_passed": tests_passed,
@@ -92,7 +100,8 @@ def evaluate_execution_metrics(
         "memory": memory_mb,
         "time_taken": round(time_taken_seconds, 1),
         "code_metrics": code_metrics,
-        "execution_error": raw_execution.get("error"),
+        "execution_error": raw_error,
+        "has_syntax_error": has_syntax_error,
     }
 
 

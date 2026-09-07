@@ -9,10 +9,10 @@
 <div class="flex flex-col gap-space-xs max-w-3xl">
 <div class="inline-flex items-center gap-space-xs">
 <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-<span class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-widest">Attested Capability Record // Passport ID: SKP-9082-PY</span>
+<span id="passport-overline" class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-widest">Attested Capability Record // Passport ID: SP-PASS-PENDING</span>
 </div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Your Skill Passport</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+<h1 id="passport-title" class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Your Skill Passport</h1>
+<p id="passport-subtitle" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
 <span class="text-on-surface font-title-md">Evidence of what you can actually do.</span>
           Your Skill Passport summarizes demonstrated performance across your practical assessments.
         </p>
@@ -62,16 +62,16 @@
 <div class="flex flex-col">
 <div class="flex items-center gap-space-xs">
 <span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">SkillProof Hermetic Passport</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-sm text-code-sm text-secondary">PROD-v4.1</span>
+<span id="passport-model-badge" class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-sm text-code-sm text-secondary">Model v1.0</span>
 </div>
-<span class="font-code-sm text-code-sm text-on-surface-variant">HERMETIC EVALUATION ARCHIVE · REVISION 3 · ISSUED OCT 24, 2024</span>
+<span id="passport-meta-line" class="font-code-sm text-code-sm text-on-surface-variant">HERMETIC EVALUATION ARCHIVE · REVISION 1</span>
 </div>
 </div>
 <!-- Primary Active Credential Level Pill -->
 <div class="flex items-center gap-space-xs self-start md:self-auto">
-<span class="px-space-md py-1.5 rounded-full bg-surface-container-high text-on-surface font-title-md text-body-sm shadow-sm flex items-center gap-space-xs">
+<span id="passport-level-pill" class="px-space-md py-1.5 rounded-full bg-surface-container-high text-on-surface font-title-md text-body-sm shadow-sm flex items-center gap-space-xs">
 <span class="w-2 h-2 rounded-full bg-secondary"></span>
-<span>Python · Intermediate Level 2</span>
+<span>Python · Intermediate</span>
 </span>
 </div>
 </div>
@@ -80,14 +80,14 @@
 <!-- Left: Big Score & Attestation Seal -->
 <div class="lg:col-span-5 flex flex-col gap-space-md">
 <div class="flex items-baseline gap-space-sm">
-<span class="font-display-xl text-display-xl text-on-surface tracking-tighter leading-none font-bold">82</span>
+<span id="passport-score" class="font-display-xl text-display-xl text-on-surface tracking-tighter leading-none font-bold">--</span>
 <span class="font-headline-md text-headline-md text-on-surface-variant font-normal">/ 100</span>
-<span class="ml-space-xs px-space-xs py-1 rounded bg-secondary-container/40 text-secondary font-label-md text-label-md uppercase tracking-wider">Verified Practical Skill</span>
+<span id="passport-verified-badge" class="ml-space-xs px-space-xs py-1 rounded bg-secondary-container/40 text-secondary font-label-md text-label-md uppercase tracking-wider">Verified Practical Skill</span>
 </div>
 <div class="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-md bg-surface-container-low max-w-fit">
 <span class="material-symbols-outlined text-[16px] text-secondary">trending_up</span>
-<span class="font-body-sm text-body-sm text-on-surface font-title-md">+21 points</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">demonstrated over 3 adaptive attempts</span>
+<span id="passport-problem-pill" class="font-body-sm text-body-sm text-on-surface font-title-md">One-shot Attestation</span>
+<span id="passport-cand-pill" class="font-body-sm text-body-sm text-on-surface-variant">Candidate Verified</span>
 </div>
 <!-- Verification Seal & Cryptographic Node Trace -->
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-sm mt-space-2xs">
@@ -104,8 +104,8 @@
 <!-- SHA-256 Checksum Chip -->
 <div class="pt-space-xs flex items-center justify-between gap-space-sm">
 <div class="flex items-center gap-space-xs overflow-hidden">
-<span class="font-code-sm text-code-sm text-on-surface-variant">SHA-256:</span>
-<code class="font-code-sm text-code-sm text-secondary truncate">0x88f2940bc2a177e4d812...c91a</code>
+<span class="font-code-sm text-code-sm text-on-surface-variant">ID:</span>
+<code id="passport-hash-code" class="font-code-sm text-code-sm text-secondary truncate">SP-PASS-PENDING</code>
 </div>
 <button class="px-space-xs py-1 rounded hover:bg-surface-container-high transition-colors font-code-sm text-code-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1 shrink-0" id="copy-hash" type="button">
 <span class="material-symbols-outlined text-[14px]">content_copy</span>
@@ -204,17 +204,17 @@
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Score</span>
-<span class="font-headline-md text-headline-md text-secondary">82<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
+<span id="passport-stat-current" class="font-headline-md text-headline-md text-secondary">--<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Verified</span>
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Progression</span>
-<span class="font-headline-md text-headline-md text-primary">+21</span>
+<span id="passport-stat-progression" class="font-headline-md text-headline-md text-primary">--</span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Pts delta</span>
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Peak Benchmark</span>
-<span class="font-headline-md text-headline-md text-on-surface">82<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
+<span id="passport-stat-peak" class="font-headline-md text-headline-md text-on-surface">--<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span></span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Attained</span>
 </div>
 </div>
@@ -223,20 +223,20 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
 <div>
 <h2 class="font-title-md text-title-md text-on-surface">Demonstrated Skill Trajectory</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Iterative skill acquisition across progressive challenge complexities</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Iterative skill acquisition across authenticated assessment sessions</p>
 </div>
 <div class="flex items-center gap-space-md font-code-sm text-code-sm">
 <span class="inline-flex items-center gap-1.5 text-secondary">
 <span class="w-2.5 h-0.5 bg-secondary rounded-full"></span> Candidate
               </span>
 <span class="inline-flex items-center gap-1.5 text-outline-variant">
-<span class="w-2.5 h-0.5 bg-outline-variant rounded-full"></span> Industry Cohort
+<span class="w-2.5 h-0.5 bg-outline-variant rounded-full"></span> Target Benchmark
               </span>
 </div>
 </div>
 <!-- Inline Vector Trajectory Graph (SVG under 2KB) -->
 <div class="w-full bg-surface-container-lowest/80 rounded-lg p-space-md">
-<svg class="w-full h-44 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 600 160">
+<svg id="passport-trajectory-svg" class="w-full h-44 overflow-visible" fill="none" preserveAspectRatio="none" viewBox="0 0 600 160">
 <defs>
 <linearGradient id="curve-area" x1="0" x2="0" y1="0" y2="1">
 <stop offset="0%" stop-color="#ffb4a5" stop-opacity="0.25"></stop>
@@ -252,24 +252,10 @@
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="18">100 Pts</text>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="58">80 Pts</text>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" x="10" y="98">60 Pts</text>
-<!-- Cohort Baseline Path (Static Muted Blue/Slate) -->
-<path d="M 80 102 Q 300 95 520 88" fill="none" stroke="#534344" stroke-dasharray="4 4" stroke-width="2"></path>
-<!-- Shaded gradient under curve -->
-<path d="M 80 98 L 80 98 Q 300 76 520 54 L 520 140 L 80 140 Z" fill="url(#curve-area)"></path>
-<!-- Main Candidate Trajectory Spline -->
-<path d="M 80 98 Q 300 76 520 54" fill="none" stroke="#ffb4a5" stroke-linecap="round" stroke-width="3"></path>
-<!-- Node 1: Attempt 1 (61) -->
-<circle cx="80" cy="98" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
-<text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="80" y="122">Attempt 1</text>
-<text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="80" y="86">61 pts</text>
-<!-- Node 2: Attempt 2 (72) -->
-<circle cx="300" cy="76" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
-<text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="300" y="122">Attempt 2</text>
-<text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="300" y="64">72 pts</text>
-<!-- Node 3: Attempt 3 (82) Current -->
-<circle cx="520" cy="54" fill="#ffb4a5" r="6.5" stroke="#131314" stroke-width="2"></circle>
-<text fill="#ffdadc" font-family="Geist" font-size="11" font-weight="600" text-anchor="middle" x="520" y="122">Attempt 3 (Latest)</text>
-<text fill="#ffdadc" font-family="JetBrains Mono" font-size="12" font-weight="700" text-anchor="middle" x="520" y="40">82 pts</text>
+<!-- Target Baseline Guide -->
+<line stroke="#534344" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="600" y1="80" y2="80"></line>
+<!-- Dynamic Candidate Trajectory Container -->
+<g id="passport-trajectory-dynamic"></g>
 </svg>
 </div>
 </div>
@@ -277,31 +263,10 @@
 <div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md">
 <div class="flex items-center justify-between">
 <h2 class="font-title-md text-title-md text-on-surface">Strength &amp; Calibrated Competency Profile</h2>
-<span class="font-label-md text-label-md text-on-surface-variant">Rubric v3.2</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Deterministic Rubric</span>
 </div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Problem Solving</span>
-<span class="px-2 py-0.5 rounded bg-primary-container/30 text-primary font-title-md text-label-md">Excellent · 91%</span>
+<div id="passport-strength-profile-matrix" class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
 </div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Understanding</span>
-<span class="px-2 py-0.5 rounded bg-primary-container/30 text-primary font-title-md text-label-md">Excellent · 90%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Correctness</span>
-<span class="px-2 py-0.5 rounded bg-secondary-container/40 text-secondary font-title-md text-label-md">Strong · 88%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
-<span class="font-body-md text-body-md text-on-surface">Efficiency</span>
-<span class="px-2 py-0.5 rounded bg-secondary-container/40 text-secondary font-title-md text-label-md">Strong · 84%</span>
-</div>
-<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between sm:col-span-2">
-<div class="flex flex-col">
-<span class="font-body-md text-body-md text-on-surface">Code Quality &amp; Maintainability</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Recommended for minor linting &amp; type hint precision</span>
-</div>
-<span class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant font-title-md text-label-md">Developing · 76%</span>
 </div>
 </div>
 </div>
@@ -317,28 +282,28 @@
 <div class="flex items-center justify-between pb-space-sm shadow-[0_1px_0_rgba(255,255,255,0.06)]">
 <div class="flex items-center gap-space-xs">
 <span class="material-symbols-outlined text-[20px] text-secondary">assignment_turned_in</span>
-<span class="font-title-md text-title-md text-on-surface">Python · Intermediate</span>
+<span id="evidence-skill-diff" class="font-title-md text-title-md text-on-surface">Python · Intermediate</span>
 </div>
-<span class="font-headline-sm text-headline-sm text-secondary font-bold">82 / 100</span>
+<span id="evidence-score" class="font-headline-sm text-headline-sm text-secondary font-bold">-- / 100</span>
 </div>
 <!-- Challenge Spec -->
 <div class="flex flex-col gap-space-xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Challenge Completed</span>
-<h3 class="font-title-md text-title-md text-on-surface">Resilient Stream Aggregator (#PY-8821)</h3>
-<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-              Architected asynchronous streaming microservice handling backpressure under strict <code class="font-code-sm text-code-sm text-on-surface">O(N log K)</code> throughput constraints with memory consumption capped below 64MB.
+<h3 id="evidence-title" class="font-title-md text-title-md text-on-surface">Assessment</h3>
+<p id="evidence-desc" class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Demonstrated bytecode execution and complexity constraints in isolated sandbox.
             </p>
 </div>
 <!-- Terminal Sandbox Trace Snippet -->
 <div class="p-space-sm rounded-lg bg-surface-container-lowest font-code-sm text-code-sm text-on-surface flex flex-col gap-1 overflow-x-auto shadow-inner">
 <div class="flex items-center justify-between text-on-surface-variant pb-1 shadow-[0_1px_0_rgba(255,255,255,0.05)]">
 <span>Hermetic Sandbox Runtime</span>
-<span class="text-secondary">24/24 PASS</span>
+<span id="evidence-tests" class="text-secondary">-- PASS</span>
 </div>
-<div class="text-on-surface-variant">&gt; Running AST Static Validator... [OK]</div>
-<div class="text-on-surface-variant">&gt; Simulating 50,000 stream payloads... [OK]</div>
-<div class="text-secondary">&gt; Execution: 28ms runtime | 18.4MB heap max</div>
-<div class="text-on-surface-variant">&gt; Memory Leak Test (120s stress): 0 bytes delta</div>
+<div id="evidence-models" class="text-on-surface-variant">&gt; Evaluator Model: v1.0 | Calib: v1.0</div>
+<div id="evidence-metrics" class="text-on-surface-variant">&gt; Static AST Complexity Analysis: Verified</div>
+<div id="evidence-runtime" class="text-secondary">&gt; Execution: --s runtime | --MB heap max</div>
+<div id="evidence-audit" class="text-on-surface-variant">&gt; Audit Mode: One-shot practical execution</div>
 </div>
 <!-- Improvement Log -->
 <div class="flex flex-col gap-space-xs">
@@ -390,7 +355,8 @@
   const copyLabel = document.getElementById('copy-label');
   if (copyBtn && copyLabel) {
     copyBtn.addEventListener('click', () => {
-      navigator.clipboard?.writeText('0x88f2940bc2a177e4d812239fbc410291e92d837411294827104928172c91a');
+      const textToCopy = window.currentPassportId || window.location.href;
+      navigator.clipboard?.writeText(textToCopy);
       copyLabel.textContent = 'Copied!';
       copyLabel.classList.add('text-secondary');
       setTimeout(() => {
@@ -429,22 +395,64 @@
   // Bind Dynamic Passport Data from SkillProof Backend
   (async function() {
     if (!window.SkillProofApi) return;
+    const candId = window.SkillProofFlow ? SkillProofFlow.getCandidateId() : (localStorage.getItem("skillproof_candidate_id") || "cand-demo");
     try {
-      const passport = await SkillProofApi.getPassport();
-      if (!passport || passport.error) return;
+      const passport = await SkillProofApi.getPassport(candId);
+      if (!passport || passport.detail) {
+        throw new Error(passport?.detail || "No passport available");
+      }
+      window.currentPassportId = passport.passport_id;
 
-      const scoreEl = document.querySelector('.font-display-xl');
-      if (scoreEl) scoreEl.textContent = Math.round(passport.overall_score);
-
-      const skillEl = [...document.querySelectorAll('span')].find((item) => item.textContent.includes('Python ·'));
-      if (skillEl) skillEl.textContent = `${passport.skill} · ${passport.difficulty.toUpperCase()} · ${passport.calibration_version}`;
-
-      const titleEl = document.querySelector('h1');
-      if (titleEl && passport.problem_title) {
-        titleEl.textContent = `SkillProof Passport — ${passport.problem_title}`;
+      // 1. Header Overline and Title
+      const overlineEl = document.getElementById('passport-overline');
+      if (overlineEl) {
+        overlineEl.textContent = `Attested Capability Record // Passport ID: ${passport.passport_id} (${passport.candidate_id})`;
       }
 
-      // Update competency bars if present
+      const titleEl = document.getElementById('passport-title');
+      if (titleEl && passport.problem_title) {
+        titleEl.textContent = `Skill Passport — ${passport.problem_title}`;
+      }
+
+      // 2. Hero Metadata Badges
+      const modelBadge = document.getElementById('passport-model-badge');
+      if (modelBadge) {
+        modelBadge.textContent = `Model ${passport.evaluation_model_version || 'v1.0'}`;
+      }
+
+      const metaLine = document.getElementById('passport-meta-line');
+      if (metaLine) {
+        const verifiedDate = passport.verified_at ? new Date(passport.verified_at).toLocaleDateString() : 'TODAY';
+        metaLine.textContent = `HERMETIC EVALUATION ARCHIVE · PROB v${passport.problem_version || '1.0'} · CALIB ${passport.calibration_version || 'v1.0'} · ${verifiedDate}`;
+      }
+
+      const levelPill = document.getElementById('passport-level-pill');
+      if (levelPill) {
+        levelPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-secondary"></span><span>${passport.skill || 'Python'} · ${(passport.difficulty || 'Intermediate').toUpperCase()}</span>`;
+      }
+
+      // 3. Hero Score
+      const scoreVal = Math.round(passport.overall_score || 0);
+      const scoreEl = document.getElementById('passport-score') || document.querySelector('.font-display-xl');
+      if (scoreEl) scoreEl.textContent = scoreVal;
+
+      const verifiedBadge = document.getElementById('passport-verified-badge');
+      if (verifiedBadge) {
+        verifiedBadge.textContent = passport.verified ? 'Verified Practical Skill' : 'Attestation Recorded';
+      }
+
+      const probPill = document.getElementById('passport-problem-pill');
+      if (probPill) probPill.textContent = passport.problem_title || 'One-shot Attestation';
+
+      const candPill = document.getElementById('passport-cand-pill');
+      if (candPill) candPill.textContent = passport.candidate_id;
+
+      const hashEl = document.getElementById('passport-hash-code');
+      if (hashEl) {
+        hashEl.textContent = `${passport.passport_id} · Model ${passport.evaluation_model_version}`;
+      }
+
+      // 4. Competency Matrix & Progress Bars
       if (passport.competencies) {
         const comps = passport.competencies;
         document.querySelectorAll('.flex.justify-between.items-center.text-body-sm').forEach((row) => {
@@ -460,13 +468,187 @@
         });
       }
 
-      // Update evidence tags
-      const hashEl = document.querySelector('code.font-code-sm');
-      if (hashEl && passport.passport_id) {
-        hashEl.textContent = `${passport.passport_id} · Model ${passport.evaluation_model_version}`;
+      // Populate Top Telemetry Stat Cards
+      const currentStatEl = document.getElementById('passport-stat-current');
+      if (currentStatEl) currentStatEl.innerHTML = `${scoreVal}<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span>`;
+
+      // Fetch Candidate History for Real Trajectory & Delta
+      let historyRecords = [];
+      try {
+        historyRecords = await SkillProofApi.getHistory(candId);
+      } catch (e) {
+        console.warn("Could not fetch history for passport trajectory:", e);
       }
+
+      const validAttempts = (Array.isArray(historyRecords) ? historyRecords : [])
+        .filter(h => h.submitted_at && h.overall_score !== null)
+        .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+      const peakScore = validAttempts.length > 0 
+        ? Math.round(Math.max(...validAttempts.map(h => h.overall_score || 0)))
+        : scoreVal;
+
+      const peakStatEl = document.getElementById('passport-stat-peak');
+      if (peakStatEl) peakStatEl.innerHTML = `${peakScore}<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/100</span>`;
+
+      const progStatEl = document.getElementById('passport-stat-progression');
+      if (progStatEl) {
+        if (validAttempts.length >= 2) {
+          const firstScore = Math.round(validAttempts[0].overall_score || 0);
+          const latestScore = Math.round(validAttempts[validAttempts.length - 1].overall_score || 0);
+          const diff = latestScore - firstScore;
+          progStatEl.textContent = (diff >= 0 ? "+" : "") + diff;
+        } else if (validAttempts.length === 1) {
+          progStatEl.textContent = "0";
+        } else {
+          progStatEl.textContent = "--";
+        }
+      }
+
+      // Render Dynamic Trajectory on SVG
+      const trajContainer = document.getElementById('passport-trajectory-dynamic');
+      if (trajContainer) {
+        const attemptsToPlot = validAttempts.length > 0 ? validAttempts : [{ overall_score: scoreVal, assessment_id: passport.passport_id }];
+        const count = attemptsToPlot.length;
+
+        function calcTrajY(s) {
+          const clamped = Math.max(0, Math.min(100, s));
+          return Math.round(140 - (clamped / 100) * 120);
+        }
+
+        const pts = attemptsToPlot.map((att, idx) => {
+          const x = count === 1 ? 300 : Math.round(80 + (idx / (count - 1)) * 440);
+          const y = calcTrajY(Math.round(att.overall_score || 0));
+          return { x, y, score: Math.round(att.overall_score || 0), idx: idx + 1, isLatest: idx === count - 1 };
+        });
+
+        let svgHtml = '';
+        if (pts.length > 1) {
+          const lineD = 'M ' + pts.map(p => `${p.x} ${p.y}`).join(' L ');
+          const areaD = `${lineD} L ${pts[pts.length - 1].x} 140 L ${pts[0].x} 140 Z`;
+          svgHtml += `<path d="${areaD}" fill="url(#curve-area)"></path>`;
+          svgHtml += `<path d="${lineD}" fill="none" stroke="#ffb4a5" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>`;
+        }
+
+        pts.forEach(p => {
+          if (p.isLatest) {
+            svgHtml += `
+              <circle cx="${p.x}" cy="${p.y}" fill="#ffb4a5" r="6.5" stroke="#131314" stroke-width="2"></circle>
+              <text fill="#ffdadc" font-family="Geist" font-size="11" font-weight="600" text-anchor="middle" x="${p.x}" y="${p.y + 24}">Attempt ${p.idx}${pts.length > 1 ? ' (Latest)' : ''}</text>
+              <text fill="#ffdadc" font-family="JetBrains Mono" font-size="12" font-weight="700" text-anchor="middle" x="${p.x}" y="${p.y - 12}">${p.score} pts</text>
+            `;
+          } else {
+            svgHtml += `
+              <circle cx="${p.x}" cy="${p.y}" fill="#131314" r="5" stroke="#ffb4a5" stroke-width="2.5"></circle>
+              <text fill="#d8c1c2" font-family="Geist" font-size="11" text-anchor="middle" x="${p.x}" y="${p.y + 24}">Attempt ${p.idx}</text>
+              <text fill="#ffb4a5" font-family="JetBrains Mono" font-size="11" font-weight="600" text-anchor="middle" x="${p.x}" y="${p.y - 12}">${p.score} pts</text>
+            `;
+          }
+        });
+
+        trajContainer.innerHTML = svgHtml;
+      }
+
+      // Render Strength & Calibrated Competency Profile
+      const matrixEl = document.getElementById('passport-strength-profile-matrix');
+      if (matrixEl && passport.competencies) {
+        const comps = passport.competencies;
+        const entries = [
+          { name: 'Problem Solving', key: 'Problem Solving', val: Math.round(comps['Problem Solving'] || 0) },
+          { name: 'Understanding', key: 'Algorithmic Thinking', val: Math.round(comps['Algorithmic Thinking'] || 0) },
+          { name: 'Correctness', key: 'Correctness', val: Math.round(comps['Correctness'] || 0) },
+          { name: 'Efficiency', key: 'Efficiency', val: Math.round(comps['Efficiency'] || 0) },
+          { name: 'Code Quality & Maintainability', key: 'Code Quality', val: Math.round(comps['Code Quality'] || 0), full: true },
+        ];
+
+        function getGrade(v) {
+          if (v >= 90) return { label: 'Excellent', cls: 'bg-primary-container/30 text-primary' };
+          if (v >= 75) return { label: 'Strong', cls: 'bg-secondary-container/40 text-secondary' };
+          if (v >= 50) return { label: 'Proficient', cls: 'bg-surface-container-high text-on-surface' };
+          return { label: 'Developing', cls: 'bg-surface-container-high text-on-surface-variant' };
+        }
+
+        matrixEl.innerHTML = entries.map(e => {
+          const g = getGrade(e.val);
+          if (e.full) {
+            return `
+              <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between sm:col-span-2">
+                <div class="flex flex-col">
+                  <span class="font-body-md text-body-md text-on-surface">${e.name}</span>
+                  <span class="font-body-sm text-body-sm text-on-surface-variant">Deterministic AST & sandbox execution audit</span>
+                </div>
+                <span class="px-2.5 py-1 rounded ${g.cls} font-title-md text-label-md">${g.label} · ${e.val}%</span>
+              </div>
+            `;
+          }
+          return `
+            <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
+              <span class="font-body-md text-body-md text-on-surface">${e.name}</span>
+              <span class="px-2 py-0.5 rounded ${g.cls} font-title-md text-label-md">${g.label} · ${e.val}%</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 5. Evidence Section
+      const evSkillDiff = document.getElementById('evidence-skill-diff');
+      if (evSkillDiff) {
+        evSkillDiff.textContent = `${passport.skill || 'Python'} · ${(passport.difficulty || 'Intermediate').toUpperCase()}`;
+      }
+
+      const evScore = document.getElementById('evidence-score');
+      if (evScore) evScore.textContent = `${scoreVal} / 100`;
+
+      const evTitle = document.getElementById('evidence-title');
+      if (evTitle) evTitle.textContent = passport.problem_title || 'Algorithmic Challenge';
+
+      const evDesc = document.getElementById('evidence-desc');
+      if (evDesc) {
+        evDesc.textContent = `Algorithm Family: ${passport.algorithm_family || 'General'} · Solved under isolated sandbox runtime · TinyML Calib: ${passport.calibration_version}.`;
+      }
+
+      const evTests = document.getElementById('evidence-tests');
+      if (evTests && passport.evidence) {
+        evTests.textContent = `${passport.evidence.tests_passed || 'Pass'} PASS (${Math.round((passport.evidence.pass_ratio || 1) * 100)}%)`;
+      }
+
+      const evModels = document.getElementById('evidence-models');
+      if (evModels) {
+        evModels.textContent = `> Evaluator Model: ${passport.evaluation_model_version} | Calib: ${passport.calibration_version}`;
+      }
+
+      const evRuntime = document.getElementById('evidence-runtime');
+      if (evRuntime && passport.evidence) {
+        evRuntime.textContent = `> Execution: ${passport.evidence.runtime_seconds}s runtime | ${passport.evidence.memory_mb}MB peak heap`;
+      }
+
+      const evMetrics = document.getElementById('evidence-metrics');
+      if (evMetrics && passport.evidence?.code_metrics) {
+        const cm = passport.evidence.code_metrics;
+        evMetrics.textContent = `> Code Complexity: Cyclomatic ${cm.cyclomatic_complexity || 1} | LOC ${cm.lines_of_code || 10} | Funcs ${cm.function_count || 1}`;
+      }
+
     } catch (error) {
-      console.info('No completed passport is available yet:', error);
+      console.warn('No completed passport available yet for candidate:', candId, error);
+      const mainSection = document.querySelector('section');
+      if (mainSection) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'p-6 my-4 rounded-xl bg-[#201F20] border border-[rgba(255,180,165,0.2)] text-center';
+        emptyState.innerHTML = `
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#353436] text-[#FFB4AB] mb-3">
+            <span class="material-symbols-outlined text-[24px]">verified_user</span>
+          </div>
+          <h2 class="text-lg font-bold text-white mb-1">No Completed Assessment on Record</h2>
+          <p class="text-sm text-[#C8C1C3] max-w-md mx-auto mb-4">
+            Candidate <code class="font-mono text-[#FFB4AB]">${candId}</code> has not submitted any one-shot assessments yet. Complete an assessment to generate your immutable Skill Passport.
+          </p>
+          <a href="skill-selection.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary font-semibold text-sm hover:opacity-90 transition-opacity">
+            <span>Start One-Shot Assessment</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </a>
+        `;
+        mainSection.prepend(emptyState);
+      }
     }
   })();
 </script></div></main></div></body></html>

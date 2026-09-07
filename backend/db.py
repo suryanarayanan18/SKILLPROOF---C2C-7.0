@@ -359,8 +359,9 @@ def get_candidate_history(candidate_id: str) -> List[Dict[str, Any]]:
                    r.overall_score, r.evaluation_model_version
             FROM assessments a
             JOIN problems p ON a.problem_id = p.id
-            LEFT JOIN results r ON a.id = r.assessment_id
-            ORDER BY a.started_at DESC
+            JOIN results r ON a.id = r.assessment_id
+            WHERE a.submitted_at IS NOT NULL AND r.overall_score IS NOT NULL
+            ORDER BY a.submitted_at DESC
             """
         )
     else:
@@ -373,9 +374,9 @@ def get_candidate_history(candidate_id: str) -> List[Dict[str, Any]]:
                    r.overall_score, r.evaluation_model_version
             FROM assessments a
             JOIN problems p ON a.problem_id = p.id
-            LEFT JOIN results r ON a.id = r.assessment_id
-            WHERE a.candidate_id = ?
-            ORDER BY a.started_at DESC
+            JOIN results r ON a.id = r.assessment_id
+            WHERE a.candidate_id = ? AND a.submitted_at IS NOT NULL AND r.overall_score IS NOT NULL
+            ORDER BY a.submitted_at DESC
             """,
             (candidate_id,),
         )

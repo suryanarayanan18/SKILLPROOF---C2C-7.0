@@ -152,21 +152,11 @@
                      P5(Understanding 90%): (37.7, 136)
                      P6(Practical App 87%): (39.8, 65.2)
                 -->
-<polygon class="filter drop-shadow-md" fill="url(#radarGlow)" points="100,27.2 161,64.8 152.7,130.4 100,167.2 37.7,136 39.8,65.2" stroke="#ffb2b9" stroke-width="2"></polygon>
-<!-- Data Nodes -->
-<circle class="fill-primary" cx="100" cy="27.2" r="3.5"></circle>
-<circle class="fill-primary" cx="161" cy="64.8" r="3.5"></circle>
-<circle class="fill-secondary" cx="152.7" cy="130.4" r="3.5"></circle>
-<circle class="fill-primary" cx="100" cy="167.2" r="3.5"></circle>
-<circle class="fill-primary" cx="37.7" cy="136" r="3.5"></circle>
-<circle class="fill-primary" cx="39.8" cy="65.2" r="3.5"></circle>
-<!-- Labels -->
-<text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="middle" x="100" y="12">SOLVING 91%</text>
-<text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="start" x="175" y="62">CORRECT 88%</text>
-<text class="fill-secondary font-label-sm text-[9px]" text-anchor="start" x="175" y="145">QUALITY 76%</text>
-<text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="middle" x="100" y="195">EFFICIENCY 84%</text>
-<text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="end" x="25" y="145">LOGIC 90%</text>
-<text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="end" x="25" y="62">APPLIED 87%</text>
+<polygon id="radar-polygon" class="filter drop-shadow-md" fill="url(#radarGlow)" points="100,100 100,100 100,100 100,100 100,100 100,100" stroke="#ffb2b9" stroke-width="2"></polygon>
+<!-- Dynamic Data Nodes -->
+<g id="radar-nodes"></g>
+<!-- Dynamic Labels -->
+<g id="radar-labels"></g>
 </svg>
 </div>
 <span class="font-label-sm text-label-sm text-on-surface-variant mt-3 text-center">Hexagonal Evaluation Mesh v2.4</span>
@@ -249,31 +239,25 @@
 <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
 <span class="material-symbols-outlined text-[20px]">psychology</span>
 </div>
-<span class="font-title-md text-title-md text-on-surface">AI Assessment Insight</span>
+<span class="font-title-md text-title-md text-on-surface">Evaluation Insight</span>
 </div>
-<span class="font-code-sm text-code-sm px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant">Conf: 99.8%</span>
+<span id="eval-insight-badge" class="font-code-sm text-code-sm px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant">TinyML Model</span>
 </div>
-<blockquote class="font-body-md text-body-md text-on-surface leading-relaxed p-space-md rounded-xl bg-surface-container-low shadow-sm italic">
-            “You demonstrated strong problem-solving ability and a clear understanding of the underlying logic. Your solution was correct and well structured, but there is room to improve efficiency and edge-case handling.”
+<blockquote id="eval-insight-quote" class="font-body-md text-body-md text-on-surface leading-relaxed p-space-md rounded-xl bg-surface-container-low shadow-sm italic">
+            Evaluating execution telemetry...
           </blockquote>
 <div class="flex flex-col gap-space-xs">
 <span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Diagnostic Synthesizer</span>
-<div class="flex flex-wrap gap-1.5">
+<div id="eval-diagnostic-tags" class="flex flex-wrap gap-1.5">
 <span class="inline-flex items-center px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm">
-                Architecture: Modular
-              </span>
-<span class="inline-flex items-center px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm">
-                Complexity: O(N log K)
-              </span>
-<span class="inline-flex items-center px-space-xs py-1 rounded bg-secondary-container/30 text-secondary font-code-sm text-code-sm">
-                Primary Latency Delta: Iteration bounds
+                Evaluating...
               </span>
 </div>
 </div>
 </div>
 <div class="mt-space-md pt-space-sm flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
-<span>Evaluator Hash: #A79-9941C</span>
-<a class="text-primary hover:underline inline-flex items-center gap-0.5" href="#">Audit Proof <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+<span id="eval-hash-span">Evaluator: TinyML v1.0</span>
+<a class="text-primary hover:underline inline-flex items-center gap-0.5" href="history.html">Audit Ledger <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
 </div>
 </section>
 </div>
@@ -290,28 +274,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant">Empirically confirmed capabilities</span>
 </div>
 </div>
-<ul class="flex flex-col gap-space-sm mt-space-xs">
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Clear problem decomposition</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Isolated helper routines systematically, ensuring single-responsibility handlers across data parsers.</span>
-</div>
-</li>
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Correct implementation</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Achieved flawless deterministic equivalence over all nominal fixtures and boundary permutations.</span>
-</div>
-</li>
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Strong understanding of edge cases</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Preempted buffer overflow scenarios when simulated stream throttled at dynamic chunk intervals.</span>
-</div>
-</li>
+<ul id="eval-strengths-list" class="flex flex-col gap-space-sm mt-space-xs">
 </ul>
 </section>
 <!-- What to improve -->
@@ -325,28 +288,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant">Actionable algorithmic optimizations</span>
 </div>
 </div>
-<ul class="flex flex-col gap-space-sm mt-space-xs">
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">change_circle</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Reduce unnecessary nested iteration</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Refactor internal lookup inside the secondary collection from a quadratic search into an amortized O(1) set check.</span>
-</div>
-</li>
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">warning</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Handle empty input more explicitly</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Defensively guard zero-length arrays before allocating memory pointers to prevent unnecessary GC overhead.</span>
-</div>
-</li>
-<li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
-<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">draw</span>
-<div class="flex flex-col">
-<span class="font-title-md text-title-md text-on-surface font-semibold">Improve readability around helper functions</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Attach typed docstrings with descriptive semantic variable names in accordance with PEP 484 type hints.</span>
-</div>
-</li>
+<ul id="eval-improvements-list" class="flex flex-col gap-space-sm mt-space-xs">
 </ul>
 </section>
 </div>
@@ -356,8 +298,8 @@
 <div class="flex flex-col gap-0.5">
 <div class="flex items-center gap-space-xs">
 <h3 class="font-headline-sm text-headline-sm text-on-surface">Attempt Progression History</h3>
-<span class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
-              +21 overall improvement
+<span id="eval-progression-badge" class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+              Attestation Trajectory
             </span>
 </div>
 <p class="font-body-sm text-body-sm text-on-surface-variant">Historical trajectory over consecutive authenticated testing sessions.</p>
@@ -375,7 +317,7 @@
 </div>
 <!-- Line Graph SVG Visualizer -->
 <div class="w-full h-64 relative">
-<svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 800 240">
+<svg id="eval-history-svg" class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 800 240">
 <defs>
 <linearGradient id="lineChartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
 <stop offset="0%" stop-color="#cb7a83" stop-opacity="0.35"></stop>
@@ -393,42 +335,17 @@
 <text class="fill-on-surface-variant font-code-sm text-[10px]" text-anchor="end" x="30" y="104">75</text>
 <text class="fill-on-surface-variant font-code-sm text-[10px]" text-anchor="end" x="30" y="164">50</text>
 <text class="fill-on-surface-variant font-code-sm text-[10px]" text-anchor="end" x="30" y="214">25</text>
-<!-- Industry Median Benchmark Line (score: 68 -> y = 210 - (68 - 25) * (170 / 75) = 210 - 97.4 = 112.6) -->
+<!-- Industry Median Benchmark Line -->
 <line stroke="#ffdad3" stroke-dasharray="6,6" stroke-opacity="0.3" stroke-width="1.5" x1="40" x2="760" y1="112" y2="112"></line>
-<!-- Candidate Data Points:
-               Attempt 1 (score 61): x = 120, y = 210 - (61-25)*(170/75) = 210 - 81.6 = 128.4
-               Attempt 2 (score 72): x = 440, y = 210 - (72-25)*(170/75) = 210 - 106.5 = 103.5
-               Attempt 3 (score 82): x = 720, y = 210 - (82-25)*(170/75) = 210 - 129.2 = 80.8
-          -->
-<!-- Area Fill -->
-<path d="M 120 128.4 L 440 103.5 L 720 80.8 L 720 210 L 120 210 Z" fill="url(#lineChartGradient)"></path>
-<!-- Trajectory Stroke -->
-<path d="M 120 128.4 L 440 103.5 L 720 80.8" fill="none" stroke="#ffb2b9" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
-<!-- Data Node 1: Attempt 1 -->
-<circle class="fill-surface-container stroke-primary" cx="120" cy="128.4" r="5" stroke-width="2.5"></circle>
-<!-- Data Node 2: Attempt 2 -->
-<circle class="fill-surface-container stroke-primary" cx="440" cy="103.5" r="5" stroke-width="2.5"></circle>
-<!-- Data Node 3: Attempt 3 -->
-<circle class="fill-primary stroke-surface" cx="720" cy="80.8" r="6" stroke-width="2"></circle>
+<!-- Dynamic Candidate Points Container -->
+<g id="eval-history-svg-dynamic"></g>
 </svg>
 <!-- Metric Badges Over Graph -->
-<div class="absolute inset-0 pointer-events-none flex justify-between px-16 pt-10">
-<div class="flex flex-col items-center">
-<span class="inline-flex px-2 py-0.5 rounded bg-surface-container text-on-surface font-code-sm text-code-sm font-semibold shadow">61</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Attempt 1</span>
-</div>
-<div class="flex flex-col items-center">
-<span class="inline-flex px-2 py-0.5 rounded bg-surface-container text-on-surface font-code-sm text-code-sm font-semibold shadow">72</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Attempt 2</span>
-</div>
-<div class="flex flex-col items-center">
-<span class="inline-flex px-2 py-0.5 rounded bg-primary text-on-primary font-code-sm text-code-sm font-semibold shadow">82</span>
-<span class="font-label-sm text-label-sm text-primary font-semibold mt-1">Attempt 3 (Current)</span>
-</div>
+<div id="eval-history-badges" class="absolute inset-0 pointer-events-none flex justify-between px-16 pt-10">
 </div>
 </div>
 </section>
-<!-- Section 6: Adaptive Retry Hero Section -->
+<!-- Section 6: Adaptive Progression Hero Section -->
 <section class="relative rounded-2xl bg-surface-container p-space-xl overflow-hidden shadow-2xl">
 <!-- Decorative radial beam -->
 <div class="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-primary/10 via-transparent to-transparent pointer-events-none"></div>
@@ -440,27 +357,13 @@
 <span class="material-symbols-outlined text-[14px]">auto_mode</span>
               Targeted Skill Progression
             </div>
-<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Ready to improve?</h2>
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Skill Attestation Ledger</h2>
 <p class="font-body-lg text-body-lg text-on-surface-variant">
-              Your evaluation identified efficiency as your main opportunity. Your next challenge will adapt to test this specifically.
+              Every submission is objectively benchmarked in an isolated sandbox. Review your authenticated results or explore continuous skill verification.
             </p>
 </div>
 <!-- Delta Comparison Pill Cluster -->
-<div class="flex items-center gap-space-xs bg-surface-container-low p-space-xs rounded-xl shadow-sm self-start md:self-auto">
-<div class="flex flex-col px-space-sm py-space-2xs text-center">
-<span class="font-label-sm text-label-sm text-on-surface-variant">Previous</span>
-<span class="font-code-sm text-code-sm font-semibold text-on-surface">61</span>
-</div>
-<span class="material-symbols-outlined text-on-surface-variant text-[16px]">arrow_forward</span>
-<div class="flex flex-col px-space-sm py-space-2xs text-center">
-<span class="font-label-sm text-label-sm text-on-surface-variant">Current</span>
-<span class="font-code-sm text-code-sm font-semibold text-primary">82</span>
-</div>
-<div class="h-6 w-px bg-surface-variant"></div>
-<div class="flex flex-col px-space-sm py-space-2xs text-center">
-<span class="font-label-sm text-label-sm text-on-surface-variant">Delta</span>
-<span class="font-code-sm text-code-sm font-semibold text-secondary">+21 PTS</span>
-</div>
+<div id="eval-adaptive-pills" class="flex items-center gap-space-xs bg-surface-container-low p-space-xs rounded-xl shadow-sm self-start md:self-auto">
 </div>
 </div>
 <!-- Next Challenge Adaptive Container Card -->
@@ -470,15 +373,13 @@
 <span class="material-symbols-outlined text-[28px]">tune</span>
 </div>
 <div class="flex flex-col gap-1">
-<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Recommended Adaptive Path</span>
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Your next challenge: O(N) Streaming Window Buffer</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">Designed around the areas you can improve: iteration constraints, dynamic sliding registers, and defensive null guards.</p>
-<div class="flex items-center gap-space-sm mt-space-xs text-on-surface-variant font-code-sm text-code-sm">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Recommended Path</span>
+<h3 id="eval-adaptive-title" class="font-headline-sm text-headline-sm text-on-surface">Targeted Adaptive Assessment</h3>
+<p id="eval-adaptive-desc" class="font-body-md text-body-md text-on-surface-variant">Designed around the areas you can improve: assertion coverage, input boundary conditions, and clean Python syntax.</p>
+<div id="eval-adaptive-meta" class="flex items-center gap-space-sm mt-space-xs text-on-surface-variant font-code-sm text-code-sm">
 <span>Estimated: 25 mins</span>
 <span>•</span>
-<span>3 Calibration Test Cases</span>
-<span>•</span>
-<span>Target: 90+ Score</span>
+<span>Target: Verified Capability</span>
 </div>
 </div>
 </div>
@@ -488,9 +389,9 @@
 <span class="material-symbols-outlined text-[18px]">verified</span>
 <span>View Skill Passport</span>
 </button>
-<button onclick="window.location.href='passport.html'" class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-title-md text-title-md transition-colors shadow-sm" type="button">
-<span class="material-symbols-outlined text-[18px]">share</span>
-<span>Share Attested Record</span>
+<button onclick="window.location.href='history.html'" class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-title-md text-title-md transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>View Assessment History</span>
 </button>
 </div>
 </div>
@@ -550,6 +451,8 @@
       return;
     }
 
+    const candidateId = result.candidate_id || 'default';
+
     // 1. Render Top Badges
     const wsLink = document.getElementById('eval-workspace-link');
     if (wsLink) wsLink.href = `workspace.html?id=${encodeURIComponent(assessmentId)}`;
@@ -587,7 +490,7 @@
 
     const testsPassEl = document.getElementById('eval-tests-pass');
     if (testsPassEl) {
-      const isFullPass = result.tests_passed === result.tests_total;
+      const isFullPass = result.tests_passed === result.tests_total && result.tests_total > 0;
       testsPassEl.textContent = isFullPass ? '100% Pass' : `${Math.round((result.tests_passed / Math.max(1, result.tests_total)) * 100)}% Pass`;
     }
 
@@ -603,24 +506,33 @@
     // 4. Render Executive Narrative
     const titleEl = document.getElementById('eval-verdict-title');
     if (titleEl) {
-      titleEl.textContent = overallScore >= 70 ? 'Certified Practical Capability' : 'Evaluation Baseline Established';
+      if (overallScore === 0) {
+        titleEl.textContent = result.tests_passed === 0 ? 'Submission Failed Execution / Validation' : 'Execution Incomplete';
+      } else if (overallScore >= 70) {
+        titleEl.textContent = 'Certified Practical Capability';
+      } else {
+        titleEl.textContent = 'Evaluation Baseline Established';
+      }
     }
 
     const descEl = document.getElementById('eval-verdict-desc');
     if (descEl) {
-      descEl.textContent = `Solution executed in hermetic Python sandbox. Passed ${result.tests_passed}/${result.tests_total} test vectors with runtime ${result.runtime}s and memory ${result.memory}MB. Evaluated under TinyML model ${result.evaluation_model_version} on calibration ${result.calibration_version}.`;
+      if (overallScore === 0) {
+        descEl.textContent = `Solution executed in hermetic Python sandbox. Passed 0/${result.tests_total} test vectors (syntax or assertion failure). Zero points awarded under strict deterministic grading policy.`;
+      } else {
+        descEl.textContent = `Solution executed in hermetic Python sandbox. Passed ${result.tests_passed}/${result.tests_total} test vectors with runtime ${result.runtime}s and memory ${result.memory}MB. Evaluated under TinyML model ${result.evaluation_model_version} on calibration ${result.calibration_version}.`;
+      }
     }
 
-    // 5. Render Breakdown Sliders
+    // 5. Render Breakdown Sliders & Dimensions
     const breakdown = result.breakdown || {};
     const dimensions = {
-      'Problem Solving': Math.round(breakdown.problem_solving ?? overallScore),
-      'Algorithmic Thinking': Math.round(breakdown.algorithmic_thinking ?? overallScore),
-      'Correctness': Math.round(breakdown.algorithmic_thinking ?? overallScore),
-      'Efficiency': Math.round(breakdown.efficiency ?? overallScore),
-      'Code Quality': Math.round(breakdown.code_quality ?? overallScore),
-      'Understanding': Math.round(breakdown.algorithmic_thinking ?? overallScore),
-      'Practical Application': Math.round(breakdown.problem_solving ?? overallScore),
+      'Problem Solving': Math.round(breakdown.problem_solving ?? 0),
+      'Correctness': Math.round(breakdown.correctness ?? breakdown.algorithmic_thinking ?? 0),
+      'Code Quality': Math.round(breakdown.code_quality ?? 0),
+      'Efficiency': Math.round(breakdown.efficiency ?? 0),
+      'Understanding': Math.round(breakdown.algorithmic_thinking ?? 0),
+      'Practical Application': Math.round(breakdown.problem_solving ?? 0),
     };
 
     document.querySelectorAll('.flex.justify-between.items-center.font-label-md').forEach((row) => {
@@ -637,10 +549,332 @@
       }
     });
 
-    // 6. Render Quote / Feedback Insight
-    const insight = document.querySelector('blockquote');
-    if (insight) {
-      insight.textContent = `“Executed ${result.tests_passed} of ${result.tests_total} test assertions in ${result.runtime}s. Evaluated across Problem Solving (${dimensions['Problem Solving']}%), Algorithmic Thinking (${dimensions['Algorithmic Thinking']}%), Efficiency (${dimensions['Efficiency']}%), and Code Quality (${dimensions['Code Quality']}%).”`;
+    // 6. Dynamic Radar Mesh
+    const radarPolygon = document.getElementById('radar-polygon');
+    const radarNodes = document.getElementById('radar-nodes');
+    const radarLabels = document.getElementById('radar-labels');
+    if (radarPolygon && radarNodes && radarLabels) {
+      const angles = [-Math.PI / 2, -Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
+      const pValues = [
+        dimensions['Problem Solving'] || 0,
+        dimensions['Correctness'] || 0,
+        dimensions['Code Quality'] || 0,
+        dimensions['Efficiency'] || 0,
+        dimensions['Understanding'] || 0,
+        dimensions['Practical Application'] || 0,
+      ];
+      const coords = pValues.map((val, idx) => {
+        const r = (val / 100) * 80;
+        return {
+          x: Number((100 + r * Math.cos(angles[idx])).toFixed(1)),
+          y: Number((100 + r * Math.sin(angles[idx])).toFixed(1)),
+        };
+      });
+      radarPolygon.setAttribute('points', coords.map(c => `${c.x},${c.y}`).join(' '));
+
+      radarNodes.innerHTML = coords.map((c, i) => `
+        <circle class="${i === 2 ? 'fill-secondary' : 'fill-primary'}" cx="${c.x}" cy="${c.y}" r="3.5"></circle>
+      `).join('');
+
+      radarLabels.innerHTML = `
+        <text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="middle" x="100" y="12">SOLVING ${pValues[0]}%</text>
+        <text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="start" x="175" y="62">CORRECT ${pValues[1]}%</text>
+        <text class="fill-secondary font-label-sm text-[9px]" text-anchor="start" x="175" y="145">QUALITY ${pValues[2]}%</text>
+        <text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="middle" x="100" y="195">EFFICIENCY ${pValues[3]}%</text>
+        <text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="end" x="25" y="145">LOGIC ${pValues[4]}%</text>
+        <text class="fill-on-surface-variant font-label-sm text-[9px]" text-anchor="end" x="25" y="62">APPLIED ${pValues[5]}%</text>
+      `;
+    }
+
+    // 7. Render AI / Deterministic Evaluation Insight
+    const insightQuote = document.getElementById('eval-insight-quote') || document.querySelector('blockquote');
+    const insightBadge = document.getElementById('eval-insight-badge');
+    const diagTags = document.getElementById('eval-diagnostic-tags');
+    const hashSpan = document.getElementById('eval-hash-span');
+
+    if (insightBadge) insightBadge.textContent = `TinyML Model ${result.evaluation_model_version || 'v1.0'}`;
+    if (hashSpan) hashSpan.textContent = `Evaluator: TinyML ${result.evaluation_model_version || 'v1.0'} · Calib ${result.calibration_version || 'v1.0'}`;
+
+    const cm = result.code_metrics || {};
+    const passRatio = result.tests_total > 0 ? (result.tests_passed / result.tests_total) : 0;
+
+    if (insightQuote) {
+      if (overallScore === 0) {
+        insightQuote.textContent = `“Submission failed sandbox execution and verification. Passed 0 of ${result.tests_total} test assertions. Rectify syntax and assertion errors to generate verified capability metrics.”`;
+      } else if (passRatio === 1.0) {
+        insightQuote.textContent = `“Executed ${result.tests_passed} of ${result.tests_total} test assertions (100% pass) in ${result.runtime}s. Strong algorithmic stability, deterministic correctness, and clean structural execution.”`;
+      } else {
+        insightQuote.textContent = `“Executed ${result.tests_passed} of ${result.tests_total} test assertions in ${result.runtime}s. Demonstrated baseline logic on passing fixtures, with opportunity to address edge cases and runtime efficiency.”`;
+      }
+    }
+
+    if (diagTags) {
+      diagTags.innerHTML = `
+        <span class="inline-flex items-center px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm">
+          Syntax: ${cm.syntax_valid !== false && cm.ast_valid !== false ? 'Valid AST' : 'Syntax Error'}
+        </span>
+        <span class="inline-flex items-center px-space-xs py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm">
+          Latency: ${result.runtime}s · ${result.memory} MB
+        </span>
+        <span class="inline-flex items-center px-space-xs py-1 rounded ${overallScore >= 70 ? 'bg-primary/20 text-primary' : 'bg-secondary-container/30 text-secondary'} font-code-sm text-code-sm">
+          Assertions: ${result.tests_passed}/${result.tests_total} Passed
+        </span>
+      `;
+    }
+
+    // 8. Render Dynamic Strengths & Improvement Areas
+    const strengthsList = document.getElementById('eval-strengths-list');
+    const improvementsList = document.getElementById('eval-improvements-list');
+
+    if (strengthsList) {
+      const strengths = [];
+      if (result.tests_passed === result.tests_total && result.tests_total > 0) {
+        strengths.push({
+          title: 'Full deterministic equivalence',
+          desc: `Achieved 100% test pass rate across all ${result.tests_total} test fixtures and boundary vectors.`
+        });
+      } else if (result.tests_passed > 0) {
+        strengths.push({
+          title: 'Partial functional equivalence',
+          desc: `Successfully satisfied ${result.tests_passed} of ${result.tests_total} test verification contracts.`
+        });
+      } else {
+        strengths.push({
+          title: 'Isolated sandbox containment',
+          desc: 'Execution was safely evaluated in a hermetic, resource-bounded Python sandbox without memory leakage.'
+        });
+      }
+
+      if (cm.lines_of_code && cm.lines_of_code > 0) {
+        strengths.push({
+          title: 'Structured codebase footprint',
+          desc: `Submitted ${cm.lines_of_code} lines of code with cyclomatic complexity ${cm.cyclomatic_complexity || 1}.`
+        });
+      }
+
+      if (cm.has_type_hints) {
+        strengths.push({
+          title: 'PEP 484 type annotations',
+          desc: 'Included explicit parameter and return type hints for static verifiable safety.'
+        });
+      } else if (result.runtime !== undefined && result.runtime <= 0.5) {
+        strengths.push({
+          title: 'Sub-second runtime throughput',
+          desc: `Execution concluded within ${result.runtime}s, avoiding timeout thresholds.`
+        });
+      }
+
+      strengthsList.innerHTML = strengths.map(s => `
+        <li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
+          <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">task_alt</span>
+          <div class="flex flex-col">
+            <span class="font-title-md text-title-md text-on-surface font-semibold">${s.title}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">${s.desc}</span>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    if (improvementsList) {
+      const improvements = [];
+      if (cm.syntax_valid === false || cm.ast_valid === false) {
+        improvements.push({
+          icon: 'warning',
+          title: 'Fix syntax and AST parsing errors',
+          desc: 'Submitted code contains syntax errors preventing execution. Ensure all brackets, indentation, and expressions are valid Python 3.'
+        });
+      }
+
+      if (result.tests_passed < result.tests_total) {
+        const failedCount = result.tests_total - result.tests_passed;
+        improvements.push({
+          icon: 'change_circle',
+          title: `Resolve ${failedCount} failing assertion${failedCount === 1 ? '' : 's'}`,
+          desc: `Code failed ${failedCount} of ${result.tests_total} test cases. Test edge conditions such as empty inputs, single elements, and extrema.`
+        });
+      }
+
+      if (!cm.has_docstrings) {
+        improvements.push({
+          icon: 'draw',
+          title: 'Add function docstrings',
+          desc: 'Document the function specification, parameter contracts, and algorithmic complexity.'
+        });
+      }
+
+      if (!cm.has_type_hints) {
+        improvements.push({
+          icon: 'draw',
+          title: 'Incorporate PEP 484 type hints',
+          desc: 'Annotate function arguments and return types to increase static readability and code quality score.'
+        });
+      }
+
+      if (improvements.length === 0) {
+        improvements.push({
+          icon: 'auto_mode',
+          title: 'Scale to higher complexity tiers',
+          desc: 'Current implementation passes all verification suites. Ready for higher difficulty challenges.'
+        });
+      }
+
+      improvementsList.innerHTML = improvements.slice(0, 3).map(imp => `
+        <li class="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container">
+          <span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">${imp.icon}</span>
+          <div class="flex flex-col">
+            <span class="font-title-md text-title-md text-on-surface font-semibold">${imp.title}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">${imp.desc}</span>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    // 9. Render Attempt History & Trajectory
+    let history = [];
+    try {
+      history = await SkillProofApi.getHistory(candidateId);
+    } catch (e) {
+      console.warn("Could not fetch candidate history:", e);
+    }
+
+    // Sort chronologically (oldest to newest)
+    const sortedHistory = (Array.isArray(history) ? history : [])
+      .filter(h => h.submitted_at && h.overall_score !== null)
+      .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+    // If current assessment isn't in history yet, append it
+    if (!sortedHistory.some(h => h.assessment_id === assessmentId)) {
+      sortedHistory.push({
+        assessment_id: assessmentId,
+        overall_score: overallScore,
+        submitted_at: new Date().toISOString(),
+        problem_title: result.problem_title
+      });
+    }
+
+    const progBadge = document.getElementById('eval-progression-badge');
+    const svgDynamic = document.getElementById('eval-history-svg-dynamic');
+    const historyBadges = document.getElementById('eval-history-badges');
+    const adaptivePills = document.getElementById('eval-adaptive-pills');
+
+    const numAttempts = sortedHistory.length;
+    const currentAttemptIdx = sortedHistory.findIndex(h => h.assessment_id === assessmentId);
+    const prevScore = currentAttemptIdx > 0 ? Math.round(sortedHistory[currentAttemptIdx - 1].overall_score || 0) : null;
+    const currScore = Math.round(sortedHistory[currentAttemptIdx >= 0 ? currentAttemptIdx : numAttempts - 1].overall_score || 0);
+
+    if (progBadge) {
+      if (prevScore !== null) {
+        const delta = currScore - prevScore;
+        progBadge.textContent = `${delta >= 0 ? '+' + delta : delta} overall delta`;
+      } else {
+        progBadge.textContent = `Baseline Attestation Established`;
+      }
+    }
+
+    // Render Adaptive Pills in Section 6
+    if (adaptivePills) {
+      if (prevScore !== null) {
+        const delta = currScore - prevScore;
+        adaptivePills.innerHTML = `
+          <div class="flex flex-col px-space-sm py-space-2xs text-center">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Previous</span>
+            <span class="font-code-sm text-code-sm font-semibold text-on-surface">${prevScore}</span>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant text-[16px]">arrow_forward</span>
+          <div class="flex flex-col px-space-sm py-space-2xs text-center">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Current</span>
+            <span class="font-code-sm text-code-sm font-semibold text-primary">${currScore}</span>
+          </div>
+          <div class="h-6 w-px bg-surface-variant"></div>
+          <div class="flex flex-col px-space-sm py-space-2xs text-center">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Delta</span>
+            <span class="font-code-sm text-code-sm font-semibold ${delta >= 0 ? 'text-primary' : 'text-secondary'}">${delta >= 0 ? '+' + delta : delta} PTS</span>
+          </div>
+        `;
+      } else {
+        adaptivePills.innerHTML = `
+          <div class="flex flex-col px-space-sm py-space-2xs text-center">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Baseline Score</span>
+            <span class="font-code-sm text-code-sm font-semibold text-primary">${currScore} / 100</span>
+          </div>
+          <div class="h-6 w-px bg-surface-variant"></div>
+          <div class="flex flex-col px-space-sm py-space-2xs text-center">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Attestation</span>
+            <span class="font-code-sm text-code-sm font-semibold text-secondary">Initial Attempt</span>
+          </div>
+        `;
+      }
+    }
+
+    // Calculate Y on SVG graph: score 0..100 maps to y = 210 - (score / 100) * 170
+    function calcSvgY(s) {
+      const clamped = Math.max(0, Math.min(100, s));
+      return Math.round(210 - (clamped / 100) * 170);
+    }
+
+    if (svgDynamic && historyBadges) {
+      // Map attempts to X coordinates across 800 width (40..760)
+      const points = sortedHistory.map((h, i) => {
+        const x = numAttempts === 1 ? 400 : Math.round(100 + (i / (numAttempts - 1)) * 600);
+        const y = calcSvgY(Math.round(h.overall_score || 0));
+        return { x, y, score: Math.round(h.overall_score || 0), isCurrent: h.assessment_id === assessmentId, idx: i + 1 };
+      });
+
+      // Render line & area fill if multiple points
+      let svgContent = '';
+      if (points.length > 1) {
+        const lineD = 'M ' + points.map(p => `${p.x} ${p.y}`).join(' L ');
+        const areaD = `${lineD} L ${points[points.length - 1].x} 210 L ${points[0].x} 210 Z`;
+        svgContent += `<path d="${areaD}" fill="url(#lineChartGradient)"></path>`;
+        svgContent += `<path d="${lineD}" fill="none" stroke="#ffb2b9" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>`;
+      }
+
+      // Render nodes
+      points.forEach(p => {
+        if (p.isCurrent) {
+          svgContent += `<circle class="fill-primary stroke-surface" cx="${p.x}" cy="${p.y}" r="6" stroke-width="2"></circle>`;
+        } else {
+          svgContent += `<circle class="fill-surface-container stroke-primary" cx="${p.x}" cy="${p.y}" r="5" stroke-width="2.5"></circle>`;
+        }
+      });
+
+      svgDynamic.innerHTML = svgContent;
+
+      // Render HTML Badges over graph
+      historyBadges.innerHTML = points.map(p => `
+        <div class="flex flex-col items-center">
+          <span class="inline-flex px-2 py-0.5 rounded ${p.isCurrent ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container text-on-surface'} font-code-sm text-code-sm shadow">${p.score}</span>
+          <span class="font-label-sm text-label-sm ${p.isCurrent ? 'text-primary font-semibold' : 'text-on-surface-variant'} mt-1">Attempt ${p.idx}${p.isCurrent ? ' (Current)' : ''}</span>
+        </div>
+      `).join('');
+    }
+
+    // 10. Update Adaptive Section Content
+    const adaptiveTitle = document.getElementById('eval-adaptive-title');
+    const adaptiveDesc = document.getElementById('eval-adaptive-desc');
+    const adaptiveMeta = document.getElementById('eval-adaptive-meta');
+    if (adaptiveTitle && adaptiveDesc) {
+      if (overallScore < 70) {
+        adaptiveTitle.textContent = 'Recommended Focus: Syntax & Core Algorithmic Logic';
+        adaptiveDesc.textContent = 'Designed around the areas you can improve: assertion coverage, input boundary conditions, and clean Python syntax.';
+        if (adaptiveMeta) {
+          adaptiveMeta.innerHTML = `
+            <span>Estimated: 20 mins</span>
+            <span>•</span>
+            <span>Target: 70+ Verified Score</span>
+          `;
+        }
+      } else {
+        adaptiveTitle.textContent = 'Recommended Next Challenge: Advanced Algorithmic Optimization';
+        adaptiveDesc.textContent = 'Designed around your strong baseline: scaling data volumes, streaming window techniques, and asymptotic efficiency.';
+        if (adaptiveMeta) {
+          adaptiveMeta.innerHTML = `
+            <span>Estimated: 25 mins</span>
+            <span>•</span>
+            <span>Target: 90+ Score</span>
+          `;
+        }
+      }
     }
   })();
 </script>

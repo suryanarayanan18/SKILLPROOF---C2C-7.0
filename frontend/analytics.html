@@ -558,19 +558,8 @@
 <!-- Industry Median dashed line at score 68 (Y ≈ 84) -->
 <line opacity="0.6" stroke="#a08c8d" stroke-dasharray="4 4" stroke-width="1.5" x1="40" x2="490" y1="84" y2="84"></line>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" font-weight="500" x="440" y="80">Median: 68</text>
-<!-- Area fill -->
-<path d="M 80 146 Q 230 115, 270 102 T 440 60 L 440 200 L 80 200 Z" fill="url(#areaGradient)"></path>
-<!-- Spline curve connecting attempts: (80, 146 [score 61]), (260, 104 [score 72]), (440, 60 [score 82]) -->
-<path d="M 80 146 Q 170 125, 260 104 T 440 60" fill="none" stroke="#ffb2b9" stroke-linecap="round" stroke-width="3"></path>
-<!-- Milestone Nodes -->
-<!-- Attempt 1: 61 -->
-<circle cx="80" cy="146" fill="#131314" filter="url(#glowNode)" r="5" stroke="#ffb2b9" stroke-width="2.5"></circle>
-<circle cx="80" cy="146" fill="#ffb2b9" r="2.5"></circle>
-<!-- Attempt 2: 72 -->
-<circle cx="260" cy="104" fill="#131314" filter="url(#glowNode)" r="5" stroke="#ffb2b9" stroke-width="2.5"></circle>
-<circle cx="260" cy="104" fill="#ffb2b9" r="2.5"></circle>
-<!-- Attempt 3: 82 -->
-<circle cx="440" cy="60" fill="#ffb2b9" filter="url(#glowNode)" r="6" stroke="#571c26" stroke-width="2.5"></circle>
+<!-- Dynamic Trajectory Container -->
+<g id="analytics-trajectory-dynamic"></g>
 <!-- Axis Labels on Y -->
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="28" y="24">100</text>
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="28" y="74">75</text>
@@ -578,19 +567,7 @@
 <text fill="#a08c8d" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="28" y="174">25</text>
 </svg>
 <!-- X-axis milestones bar -->
-<div class="flex justify-between items-center px-8 pt-space-xs text-on-surface-variant font-code-sm text-code-sm border-t-0">
-<div class="flex flex-col items-center">
-<span class="text-on-surface font-semibold">Attempt 1</span>
-<span class="text-label-sm font-label-sm text-outline">Score 61</span>
-</div>
-<div class="flex flex-col items-center">
-<span class="text-on-surface font-semibold">Attempt 2</span>
-<span class="text-label-sm font-label-sm text-outline">Score 72 (+11)</span>
-</div>
-<div class="flex flex-col items-center">
-<span class="text-primary font-bold">Attempt 3 (Latest)</span>
-<span class="text-label-sm font-label-sm text-primary font-semibold">Score 82 (+21)</span>
-</div>
+<div id="analytics-milestones-bar" class="flex justify-between items-center px-8 pt-space-xs text-on-surface-variant font-code-sm text-code-sm border-t-0">
 </div>
 </div>
 <!-- Quick trajectory metrics list -->
@@ -949,6 +926,75 @@
     });
   }
 
+  async function refreshTrajectory() {
+    try {
+      const history = await SkillProofApi.getHistory();
+      const valid = (Array.isArray(history) ? history : [])
+        .filter(h => h.submitted_at && h.overall_score !== null)
+        .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+      const dynamicSvg = document.getElementById('analytics-trajectory-dynamic');
+      const milestonesBar = document.getElementById('analytics-milestones-bar');
+      if (!dynamicSvg || !milestonesBar) return;
+
+      if (valid.length === 0) {
+        dynamicSvg.innerHTML = '';
+        milestonesBar.innerHTML = `<span class="text-on-surface-variant italic py-2">No completed assessments on record.</span>`;
+        return;
+      }
+
+      function calcY(score) {
+        const clamped = Math.max(0, Math.min(100, score));
+        return Math.round(170 - (clamped / 100) * 150);
+      }
+
+      const count = valid.length;
+      const pts = valid.map((att, i) => {
+        const x = count === 1 ? 260 : Math.round(80 + (i / (count - 1)) * 360);
+        const y = calcY(Math.round(att.overall_score || 0));
+        return { x, y, score: Math.round(att.overall_score || 0), idx: i + 1, isLatest: i === count - 1 };
+      });
+
+      let svgHtml = '';
+      if (pts.length > 1) {
+        const lineD = 'M ' + pts.map(p => `${p.x} ${p.y}`).join(' L ');
+        const areaD = `${lineD} L ${pts[pts.length - 1].x} 200 L ${pts[0].x} 200 Z`;
+        svgHtml += `<path d="${areaD}" fill="url(#areaGradient)"></path>`;
+        svgHtml += `<path d="${lineD}" fill="none" stroke="#ffb2b9" stroke-linecap="round" stroke-width="3"></path>`;
+      }
+
+      pts.forEach(p => {
+        svgHtml += `
+          <circle cx="${p.x}" cy="${p.y}" fill="#131314" filter="url(#glowNode)" r="5" stroke="#ffb2b9" stroke-width="2.5"></circle>
+          <circle cx="${p.x}" cy="${p.y}" fill="${p.isLatest ? '#ffb2b9' : '#131314'}" r="2.5"></circle>
+        `;
+      });
+      dynamicSvg.innerHTML = svgHtml;
+
+      milestonesBar.innerHTML = pts.map((p, i) => {
+        const prevScore = i > 0 ? pts[i - 1].score : null;
+        const deltaStr = prevScore !== null ? ` (${p.score - prevScore >= 0 ? '+' : ''}${p.score - prevScore})` : '';
+        if (p.isLatest) {
+          return `
+            <div class="flex flex-col items-center">
+              <span class="text-primary font-bold">Attempt ${p.idx}${count > 1 ? ' (Latest)' : ''}</span>
+              <span class="text-label-sm font-label-sm text-primary font-semibold">Score ${p.score}${deltaStr}</span>
+            </div>
+          `;
+        }
+        return `
+          <div class="flex flex-col items-center">
+            <span class="text-on-surface font-semibold">Attempt ${p.idx}</span>
+            <span class="text-label-sm font-label-sm text-outline">Score ${p.score}${deltaStr}</span>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.warn("Could not load analytics trajectory:", e);
+    }
+  }
+
   refreshCalibrationStatus();
+  refreshTrajectory();
 </script>
 </body></html>
