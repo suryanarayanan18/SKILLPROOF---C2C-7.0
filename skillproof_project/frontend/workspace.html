@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&amp;family=Geist:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -66,6 +67,54 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0A0A0B] text-[#F5F3F3] selection:bg-[#B86A73]/30 selection:text-white antialiased">
 
+  <!-- FIXED SIDEBAR -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-[#111012]/95 backdrop-blur-xl z-50 hidden lg:flex flex-col justify-between p-6 border-r border-white/5 shadow-2xl">
+    <div class="flex flex-col gap-8">
+      <div class="flex items-center gap-3 px-1">
+        <div class="w-8 h-8 rounded-lg bg-[#151315] border border-white/10 flex items-center justify-center relative overflow-hidden shadow-inner">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#8A4D5D]/40 via-transparent to-[#D47A68]/30"></div>
+          <svg class="w-4 h-4 text-[#F5F3F3] relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight text-white">SkillProof</span>
+      </div>
+      <nav class="flex flex-col gap-1.5">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="home" href="index.html">
+          <span class="material-symbols-outlined text-[20px]">grid_view</span>
+          <span>Home</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="assessments" href="skill-selection.html">
+          <span class="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+          <span>Assessments</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="history" href="history.html">
+          <span class="material-symbols-outlined text-[20px]">history</span>
+          <span>Assessment History</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="skill-passport" href="passport.html">
+          <span class="material-symbols-outlined text-[20px]">verified</span>
+          <span>Skill Passport</span>
+        </a>
+      </nav>
+    </div>
+    <div class="flex flex-col gap-4">
+      <nav class="flex flex-col">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#C8C1C3] hover:bg-white/5 hover:text-white transition-colors text-sm font-medium" data-path="settings" href="analytics.html">
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span>Settings</span>
+        </a>
+      </nav>
+      <div class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
+        <span class="w-2 h-2 rounded-full bg-[#B86A73] animate-pulse"></span>
+        <span class="text-[11px] font-mono text-[#C8C1C3] uppercase tracking-wider">Node v4.1 Active</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lg:pl-64 flex-1 flex flex-col min-h-screen">
   <!-- TOP BAR -->
   <header class="h-14 border-b border-[rgba(255,255,255,0.07)] bg-[#111012]/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-30 sticky top-0">
     <div class="flex items-center gap-3 sm:gap-4">
@@ -158,7 +207,7 @@
             <svg class="w-4 h-4 text-[#D47A68]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             Production Scenario
           </h2>
-          <p class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed">
+          <p id="challenge-scenario" class="text-xs sm:text-sm text-[#C8C1C3] leading-relaxed">
             The existing legacy function <code class="font-mono text-[12px] bg-black/40 px-1.5 py-0.5 rounded text-[#D9A0AA]">aggregate_payload_stream()</code> suffers from O(N²) memory consumption during unordered timestamp streams and silently crashes when receiving malformed JSON metadata envelopes.
           </p>
         </div>
@@ -168,18 +217,14 @@
           <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73]"></span> Requirements
           </h3>
-          <ul class="space-y-2.5 text-xs sm:text-sm text-[#C8C1C3]">
+          <ul id="challenge-requirements" class="space-y-2.5 text-xs sm:text-sm text-[#C8C1C3]">
             <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
               <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">01</span>
-              <span><strong>Temporal Grouping:</strong> Group events by 60-second time buckets while preserving chronological order within each bucket.</span>
+              <span><strong>Correctness:</strong> Implement the algorithm matching expected outputs across normal, boundary, and edge cases.</span>
             </li>
             <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
               <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">02</span>
-              <span><strong>Defensive Validation:</strong> Drop malformed payloads with invalid schema, returning a sanitized audit record containing aggregate error counts.</span>
-            </li>
-            <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#151315]/70 border border-white/5">
-              <span class="font-mono text-xs text-[#B86A73] font-bold mt-0.5">03</span>
-              <span><strong>Throughput Constraint:</strong> Execute aggregation with O(N log K) time complexity or better, where K is the total unique partition keys.</span>
+              <span><strong>Efficiency:</strong> Bounded time and space complexity with standard library Python.</span>
             </li>
           </ul>
         </div>
@@ -189,16 +234,20 @@
           <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <span class="w-1.5 h-1.5 rounded-full bg-[#D47A68]"></span> Constraints
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div id="challenge-constraints" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
               <svg class="w-3.5 h-3.5 text-[#8D8789]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              <span>Max peak memory: <strong>&lt; 64MB</strong></span>
-            </div>
-            <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
-              <svg class="w-3.5 h-3.5 text-[#8D8789]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span>Standard library only (No Pandas)</span>
+              <span>Standard Python 3.11</span>
             </div>
           </div>
+        </div>
+
+        <!-- Examples (if provided) -->
+        <div id="challenge-examples-container" class="hidden space-y-2">
+          <h3 class="text-xs font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#78BDE8]"></span> Examples
+          </h3>
+          <div id="challenge-examples" class="space-y-2.5 text-xs font-mono"></div>
         </div>
 
         <!-- What We're Evaluating -->
@@ -207,7 +256,7 @@
             <span>What we're evaluating</span>
             <span class="text-[11px] font-mono text-[#8D8789] normal-case">Multi-agent assessment</span>
           </h3>
-          <div class="space-y-2">
+          <div id="challenge-concepts" class="space-y-2">
             <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
               <span class="text-[#C8C1C3]">Problem Solving &amp; Decomposition</span>
               <span class="text-[11px] font-mono text-[#D9A0AA]">Weight 20%</span>
@@ -253,9 +302,8 @@
               </svg>
             </button>
             <div id="hint-panel" class="hidden p-4 border-t border-white/5 bg-[#111012] text-xs text-[#C8C1C3] space-y-2 leading-relaxed">
-              <p class="text-[#D9A0AA] font-mono text-[11px]">AI Thought Scaffold:</p>
-              <p>Consider using Python's standard <code class="text-white font-mono bg-white/5 px-1 py-0.5 rounded">collections.defaultdict(list)</code> keyed by <code class="text-white font-mono bg-white/5 px-1 py-0.5 rounded">ts - (ts % 60)</code>. Instead of doing repeated sorting on the full array, collect items into their deterministic temporal bucket and sort each partition individually or maintain insertion order if upstream telemetry is partially ordered.</p>
-              <p class="text-[11px] text-[#8D8789]">Note: Utilizing hints does not deduct verification marks, but reasoning justification is factored into the multi-axis attestation.</p>
+              <p class="text-[#D9A0AA] font-mono text-[11px]">Implementation Hint:</p>
+              <p id="hint-text">Review the function signature and problem constraints carefully. Implement a solution that handles all edge cases.</p>
             </div>
           </div>
         </div>
@@ -288,7 +336,7 @@
             <svg class="w-3.5 h-3.5 text-[#78BDE8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            <span>Run Sandbox (3 tests)</span>
+            <span id="btn-run-text">Run Code</span>
           </button>
 
           <!-- Submit (Primary CTA with Radiant Warm Accent) -->
@@ -311,34 +359,11 @@
           <div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
         </div>
 
-        <!-- Editable Code Area with Syntax Simulation -->
+        <!-- Editable Code Area -->
         <div class="flex-1 p-4 overflow-y-auto custom-scrollbar relative">
-          <textarea id="code-input" spellcheck="false" class="w-full h-full bg-transparent text-[#F5F3F3] outline-none resize-none font-mono text-[13px] leading-relaxed selection:bg-[#B86A73]/40" style="white-space: pre; tab-size: 4;">from typing import List, Dict, Any
-from collections import defaultdict
-
-def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-    """
-    Groups events into 60s temporal buckets with schema integrity check.
-    O(N log K) bounded memory footprint.
-    """
-    valid_buckets = defaultdict(list)
-    malformed_count = 0
-    
-    for record in events:
-        # Schema validation
-        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:
-            malformed_count += 1
-            continue
-            
-        ts = record["timestamp"]
-        bucket_key = str(ts - (ts % 60))
-        valid_buckets[bucket_key].append(record)
-        
-    return {
-        "status": "success",
-        "partitions": dict(valid_buckets),
-        "malformed_dropped": malformed_count
-    }
+          <textarea id="code-input" spellcheck="false" class="w-full h-full bg-transparent text-[#F5F3F3] outline-none resize-none font-mono text-[13px] leading-relaxed selection:bg-[#B86A73]/40" style="white-space: pre; tab-size: 4;"># Write your Python solution code here
+def solve(*args, **kwargs):
+    pass
 </textarea>
         </div>
 
@@ -351,36 +376,16 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
         <!-- Console Header -->
         <div class="h-8 px-4 bg-[#151315] border-b border-white/5 flex items-center justify-between text-xs text-[#8D8789]">
           <div class="flex items-center gap-2">
-            <span class="font-mono text-[#C8C1C3]">Local Test Harness</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-[#6FA879]"></span>
-            <span class="text-[11px] text-[#6FA879]" id="test-status-text">3 / 3 Passing</span>
+            <span class="font-mono text-[#C8C1C3]">Sandbox Test Console</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-[#8D8789]" id="test-status-dot"></span>
+            <span class="text-[11px] text-[#C8C1C3]" id="test-status-text">Ready · Click Run Code to execute tests in sandbox</span>
           </div>
-          <span class="text-[11px] font-mono text-[#8D8789]">Execution: 28ms (0.12MB)</span>
+          <span class="text-[11px] font-mono text-[#8D8789]" id="test-perf-text"></span>
         </div>
 
         <!-- Test Case Results -->
-        <div class="p-3 overflow-y-auto custom-scrollbar flex-1 space-y-1.5 font-mono text-xs">
-          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="text-[#6FA879] font-bold">✓ PASS</span>
-              <span class="text-white">test_temporal_60s_binning</span>
-            </div>
-            <span class="text-[#8D8789] text-[11px]">8ms</span>
-          </div>
-          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="text-[#6FA879] font-bold">✓ PASS</span>
-              <span class="text-white">test_malformed_envelope_sanitization</span>
-            </div>
-            <span class="text-[#8D8789] text-[11px]">11ms</span>
-          </div>
-          <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5">
-            <div class="flex items-center gap-2">
-              <span class="text-[#6FA879] font-bold">✓ PASS</span>
-              <span class="text-white">test_memory_bounded_10k_burst</span>
-            </div>
-            <span class="text-[#8D8789] text-[11px]">9ms</span>
-          </div>
+        <div id="test-results-container" class="p-3 overflow-y-auto custom-scrollbar flex-1 space-y-1.5 font-mono text-xs">
+          <div class="text-[#8D8789] text-xs py-2">Write your Python code above and click "Run Code" to execute tests in the sandbox.</div>
         </div>
       </div>
 
@@ -401,8 +406,8 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
               </svg>
             </div>
             <div>
-              <h4 class="text-base font-semibold text-white tracking-tight">Analyzing your approach...</h4>
-              <p class="text-xs text-[#8D8789]">Multi-agent neural attestation protocol active</p>
+              <h4 class="text-base font-semibold text-white tracking-tight">Evaluating your solution...</h4>
+              <p class="text-xs text-[#8D8789]">Isolated sandbox benchmark execution active</p>
             </div>
           </div>
 
@@ -415,31 +420,31 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
           <div class="space-y-2.5 font-mono text-xs mb-6">
             <div class="flex items-center justify-between text-[#6FA879]" id="seq-step-1">
               <span class="flex items-center gap-2">
-                <span>✓</span> Checking correctness
+                <span>✓</span> Subprocess execution
               </span>
-              <span class="text-[11px] text-[#8D8789]">100% assertions</span>
+              <span class="text-[11px] text-[#8D8789]">Sandboxed</span>
             </div>
             <div class="flex items-center justify-between text-[#6FA879]" id="seq-step-2">
               <span class="flex items-center gap-2">
-                <span>✓</span> Reviewing problem solving
+                <span>✓</span> Assertion testing
               </span>
-              <span class="text-[11px] text-[#8D8789]">Modular flow</span>
+              <span class="text-[11px] text-[#8D8789]">Self-validating</span>
             </div>
             <div class="flex items-center justify-between text-white" id="seq-step-3">
               <span class="flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73] animate-ping"></span> Evaluating code quality
+                <span class="w-1.5 h-1.5 rounded-full bg-[#B86A73] animate-ping"></span> Code quality &amp; AST metrics
               </span>
               <span class="text-[11px] text-[#D9A0AA]">In Progress</span>
             </div>
             <div class="flex items-center justify-between text-[#8D8789]" id="seq-step-4">
               <span class="flex items-center gap-2">
-                <span>•</span> Analyzing efficiency
+                <span>•</span> Scoring computation
               </span>
               <span class="text-[11px]">Pending</span>
             </div>
             <div class="flex items-center justify-between text-[#8D8789]" id="seq-step-5">
               <span class="flex items-center gap-2">
-                <span>•</span> Identifying improvement areas
+                <span>•</span> Immutable record creation
               </span>
               <span class="text-[11px]">Queued</span>
             </div>
@@ -447,15 +452,7 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
 
           <!-- Actions -->
           <div class="flex items-center justify-between pt-3 border-t border-white/5">
-            <span class="text-[11px] text-[#8D8789]">Cryptographically locked upon completion</span>
-            <div class="flex items-center gap-2">
-              <button onclick="cancelSubmission()" class="text-xs text-[#8D8789] hover:text-white px-2.5 py-1 rounded transition-colors">
-                Return to editor
-              </button>
-              <button onclick="finishEvaluation()" class="text-xs px-3 py-1 rounded bg-[#B86A73]/30 text-white hover:bg-[#B86A73]/60 transition-colors">
-                View Results
-              </button>
-            </div>
+            <span class="text-[11px] text-[#8D8789]">One-shot submission is final upon completion</span>
           </div>
         </div>
       </div>
@@ -469,40 +466,146 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
   <script src="js/api.js"></script>
   <script>
     let activeChallenge = null;
+    let isSubmitted = false;
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showSubmissionError(message, isConflict = false) {
+      const errorEl = document.getElementById('eval-error');
+      if (!errorEl) return;
+      if (isConflict) {
+        errorEl.innerHTML = `<strong>Submission Locked:</strong> ${escapeHtml(message)} <a href="evaluation.html?id=${encodeURIComponent(SkillProofFlow.getAssessmentId())}" class="underline text-white font-semibold ml-2">View Evaluation &rarr;</a>`;
+      } else {
+        errorEl.textContent = `Error: ${message}`;
+      }
+      errorEl.classList.remove('hidden');
+    }
+
+    function lockSubmissionState() {
+      isSubmitted = true;
+      const editorEl = document.getElementById('code-input');
+      if (editorEl) editorEl.readOnly = true;
+      const btnSubmit = document.getElementById('btn-submit');
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+      const btnRun = document.getElementById('btn-run');
+      if (btnRun) {
+        btnRun.disabled = true;
+        btnRun.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+    }
 
     // Load active challenge into workspace
     document.addEventListener("DOMContentLoaded", async () => {
-      if (window.SkillProofFlow) {
-        activeChallenge = SkillProofFlow.getStoredAssessment();
-        if (!activeChallenge && SkillProofFlow.getAssessmentId()) {
-          activeChallenge = await SkillProofApi.getAssessment(SkillProofFlow.getAssessmentId());
-          SkillProofFlow.setAssessment(activeChallenge);
+      const urlParams = new URLSearchParams(window.location.search);
+      const assessmentId = urlParams.get('id') || urlParams.get('assessment_id') || (window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null);
+      try {
+        if (assessmentId) {
+          activeChallenge = await SkillProofApi.getAssessment(assessmentId);
+        } else {
+          // No active assessment, create one with selected skill/difficulty
+          activeChallenge = await SkillProofApi.createAssessment({
+            skill: SkillProofFlow.getSkill(),
+            difficulty: SkillProofFlow.getDifficulty(),
+          });
         }
-        activeChallenge = activeChallenge || SkillProofFlow.getActiveChallenge();
-        const skillKey = SkillProofFlow.getSkill();
-        const diffKey = SkillProofFlow.getDifficulty();
+        SkillProofFlow.setAssessment(activeChallenge);
+      } catch (err) {
+        showSubmissionError(err.message || "Failed to connect to backend server. Please ensure backend is running.");
+        return;
+      }
 
-        const topSkillEl = document.getElementById('top-skill-badge');
-        if (topSkillEl) topSkillEl.textContent = activeChallenge.title ? `${skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}` : skillKey;
+      if (!activeChallenge) return;
 
-        const topDiffEl = document.getElementById('top-diff-badge');
-        if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || diffKey;
+      // Populate Title, Difficulty, Protocol badges
+      const skillName = activeChallenge.skill || "Python";
+      const topSkillEl = document.getElementById('top-skill-badge');
+      if (topSkillEl) topSkillEl.textContent = `${skillName} 3.11`;
 
-        const protoEl = document.getElementById('challenge-protocol');
-        if (protoEl && activeChallenge.protocolNode) protoEl.textContent = 'Attestation Protocol ' + activeChallenge.protocolNode;
+      const topDiffEl = document.getElementById('top-diff-badge');
+      if (topDiffEl) topDiffEl.textContent = activeChallenge.difficulty || "Intermediate";
 
-        const titleEl = document.getElementById('challenge-title');
-        if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
+      const protoEl = document.getElementById('challenge-protocol');
+      if (protoEl) {
+        const pId = (activeChallenge.problem_id || activeChallenge.challenge_id || activeChallenge.id || 'PY').slice(-6).toUpperCase();
+        protoEl.textContent = `Attestation Protocol #${pId} · v${activeChallenge.problem_version || '1.0'}`;
+      }
 
-        const overviewEl = document.getElementById('challenge-overview');
-        if (overviewEl && activeChallenge.overview) overviewEl.textContent = activeChallenge.overview;
+      const titleEl = document.getElementById('challenge-title');
+      if (titleEl && activeChallenge.title) titleEl.textContent = activeChallenge.title;
 
-        // Set starter code if not already saved
+      const desc = activeChallenge.description || activeChallenge.overview || "";
+      const overviewEl = document.getElementById('challenge-overview');
+      if (overviewEl && desc) overviewEl.textContent = desc;
+
+      const scenarioEl = document.getElementById('challenge-scenario');
+      if (scenarioEl && desc) scenarioEl.textContent = desc;
+
+      // Populate dynamic constraints if provided by generated problem
+      const constraintsEl = document.getElementById('challenge-constraints');
+      if (constraintsEl && activeChallenge.constraints && activeChallenge.constraints.length > 0) {
+        constraintsEl.innerHTML = activeChallenge.constraints.map(c => `
+          <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 flex items-center gap-2 text-[#C8C1C3]">
+            <svg class="w-3.5 h-3.5 text-[#8D8789] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>${escapeHtml(c)}</span>
+          </div>
+        `).join('');
+      }
+
+      // Populate examples if provided
+      const examplesContainer = document.getElementById('challenge-examples-container');
+      const examplesEl = document.getElementById('challenge-examples');
+      const examples = activeChallenge.examples || (activeChallenge.problem && activeChallenge.problem.examples) || [];
+      if (examplesContainer && examplesEl && examples.length > 0) {
+        examplesContainer.classList.remove('hidden');
+        examplesEl.innerHTML = examples.map((ex, idx) => `
+          <div class="p-2.5 rounded-lg bg-[#111012] border border-white/5 space-y-1">
+            <div class="text-[11px] text-[#8D8789] font-sans font-semibold">Example ${idx + 1}${ex.explanation ? `: <span class="font-normal text-[#C8C1C3]">${escapeHtml(ex.explanation)}</span>` : ''}</div>
+            <div><span class="text-[#78BDE8]">Input:</span> <span class="text-[#F5F3F3]">${escapeHtml(typeof ex.input === 'object' ? JSON.stringify(ex.input) : String(ex.input))}</span></div>
+            <div><span class="text-[#6FA879]">Output:</span> <span class="text-[#F5F3F3]">${escapeHtml(typeof ex.output === 'object' ? JSON.stringify(ex.output) : String(ex.output))}</span></div>
+          </div>
+        `).join('');
+      }
+
+      // Populate dynamic concepts if available
+      const conceptsEl = document.getElementById('challenge-concepts');
+      if (conceptsEl && activeChallenge.concepts && activeChallenge.concepts.length > 0) {
+        conceptsEl.innerHTML = activeChallenge.concepts.map(concept => `
+          <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]">
+            <span class="text-[#C8C1C3]">${escapeHtml(concept)}</span>
+            <span class="text-[11px] font-mono text-[#D9A0AA]">Evaluated</span>
+          </div>
+        `).join('');
+      }
+
+      // Set hint text if available
+      const hintTextEl = document.getElementById('hint-text');
+      if (hintTextEl && activeChallenge.algorithm_family) {
+        hintTextEl.textContent = `Focus area: ${activeChallenge.algorithm_family}. Ensure your code handles edge cases, empty structures, and adheres to expected return types.`;
+      }
+
+      // Set starter code or submitted code
+      const editorEl = document.getElementById('code-input');
+      if (editorEl) {
+        const submittedCode = activeChallenge.result?.submission_code;
         const savedCode = SkillProofFlow.getSolutionCode();
-        const editorEl = document.getElementById('code-input');
-        if (editorEl) {
-          editorEl.value = savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
-        }
+        editorEl.value = submittedCode || savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
+      }
+
+      // Check if this assessment has already been submitted
+      if (activeChallenge.submitted_at || activeChallenge.result) {
+        lockSubmissionState();
+        showSubmissionError("This assessment has already been submitted and cannot be submitted again. One-shot verification is final.", true);
       }
     });
 
@@ -519,83 +622,214 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
       }
     }
 
-    // Finish evaluation and redirect
-    function finishEvaluation() {
-      if (evalInterval) clearInterval(evalInterval);
+    // Run Code Sandbox Execution
+    async function runLocalTests() {
+      if (isSubmitted) return;
+      const btn = document.getElementById('btn-run');
       const editorEl = document.getElementById('code-input');
-      if (editorEl && window.SkillProofFlow) {
-        SkillProofFlow.setSolutionCode(editorEl.value);
+      const statusText = document.getElementById('test-status-text');
+      const statusDot = document.getElementById('test-status-dot');
+      const perfText = document.getElementById('test-perf-text');
+      const resultsContainer = document.getElementById('test-results-container');
+      const assessmentId = SkillProofFlow.getAssessmentId();
+
+      if (!assessmentId || !editorEl) {
+        showSubmissionError('Assessment missing. Please start a challenge first.');
+        return;
       }
-      window.location.href = 'evaluation.html';
+
+      const code = editorEl.value;
+      if (!code.trim()) {
+        showSubmissionError('Please write Python code before running sandbox tests.');
+        return;
+      }
+
+      const originalBtnText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Running...';
+
+      try {
+        const res = await SkillProofApi.runCode(assessmentId, code);
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+
+        if (res.status === 'syntax_error') {
+          if (statusDot) statusDot.className = 'w-1.5 h-1.5 rounded-full bg-[#D47A68]';
+          if (statusText) {
+            statusText.className = 'text-[11px] text-[#D47A68] font-bold';
+            statusText.textContent = 'Syntax Error';
+          }
+          if (perfText) perfText.textContent = 'Runtime: 0ms';
+          if (resultsContainer) {
+            resultsContainer.innerHTML = `
+              <div class="p-3 rounded-lg bg-[#3A1F22]/80 border border-[#D47A68]/40 text-xs font-mono">
+                <div class="font-bold text-[#FFD3CC] flex items-center gap-2 mb-1">✕ Syntax Error</div>
+                <pre class="text-[#FFD3CC] whitespace-pre-wrap text-[11px] overflow-x-auto">${escapeHtml(res.error || 'Syntax error in Python solution code')}</pre>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        if (res.status === 'timeout') {
+          if (statusDot) statusDot.className = 'w-1.5 h-1.5 rounded-full bg-[#D47A68]';
+          if (statusText) {
+            statusText.className = 'text-[11px] text-[#D47A68] font-bold';
+            statusText.textContent = 'Execution Timed Out';
+          }
+          if (perfText) perfText.textContent = 'Runtime: >5000ms';
+          if (resultsContainer) {
+            resultsContainer.innerHTML = `
+              <div class="p-3 rounded-lg bg-[#3A1F22]/80 border border-[#D47A68]/40 text-xs font-mono">
+                <div class="font-bold text-[#FFD3CC]">✕ Execution Timed Out (> 5.0 seconds)</div>
+                <div class="text-[#FFD3CC] text-[11px] mt-1">Your code exceeded the maximum 5.0s sandbox limit.</div>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        const testsPassed = res.tests_passed || 0;
+        const testsTotal = res.tests_total || 0;
+        const allPassed = testsPassed === testsTotal && testsTotal > 0;
+
+        if (statusDot) {
+          statusDot.className = `w-1.5 h-1.5 rounded-full ${allPassed ? 'bg-[#6FA879]' : 'bg-[#D47A68]'}`;
+        }
+        if (statusText) {
+          statusText.className = `text-[11px] ${allPassed ? 'text-[#6FA879]' : 'text-[#D47A68]'} font-bold`;
+          statusText.textContent = `${testsPassed} / ${testsTotal} Passing`;
+        }
+        if (perfText) {
+          perfText.textContent = `Execution: ${(res.runtime_ms || 0).toFixed(1)}ms (${(res.memory_mb || 0).toFixed(2)}MB)`;
+        }
+
+        if (resultsContainer && res.test_results) {
+          resultsContainer.innerHTML = res.test_results.map(t => {
+            if (t.passed) {
+              return `
+                <div class="flex items-center justify-between p-2 rounded bg-[#0A0A0B]/60 border border-white/5 font-mono text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[#6FA879] font-bold">✓ PASS</span>
+                    <span class="text-white">${escapeHtml(t.name)}</span>
+                  </div>
+                  <span class="text-[#8D8789] text-[11px]">${(t.runtime_ms || 0).toFixed(1)}ms</span>
+                </div>
+              `;
+            } else {
+              return `
+                <div class="p-2 rounded bg-[#3A1F22]/40 border border-[#D47A68]/30 space-y-1 font-mono text-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[#D47A68] font-bold">✕ FAIL</span>
+                      <span class="text-white">${escapeHtml(t.name)}</span>
+                    </div>
+                    <span class="text-[#8D8789] text-[11px]">${(t.runtime_ms || 0).toFixed(1)}ms</span>
+                  </div>
+                  ${t.error ? `<div class="text-[11px] text-[#FFD3CC] font-mono pl-6">${escapeHtml(t.error)}</div>` : ''}
+                </div>
+              `;
+            }
+          }).join('');
+        }
+      } catch (err) {
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+        showSubmissionError(err.message || 'Error executing sandbox tests');
+      }
     }
 
-    // Interactive Submission Simulation Flow
-    let evalInterval;
+    // Submission Evaluation Flow
     async function startSubmissionEvaluation() {
+      if (isSubmitted) {
+        showSubmissionError("This assessment has already been submitted and cannot be submitted again.", true);
+        return;
+      }
+
       const overlay = document.getElementById('eval-overlay');
       const progressBar = document.getElementById('eval-progress-bar');
       const editorEl = document.getElementById('code-input');
+      const btnSubmit = document.getElementById('btn-submit');
+      const btnRun = document.getElementById('btn-run');
       const assessmentId = SkillProofFlow.getAssessmentId();
+
       if (!assessmentId || !editorEl) {
-        window.alert('Start a challenge before submitting a solution.');
+        window.alert('Assessment ID not found. Please start a challenge first.');
         return;
       }
+
+      const solutionCode = editorEl.value;
+      if (!solutionCode.trim()) {
+        showSubmissionError('Please write your solution code before submitting.');
+        return;
+      }
+
+      // Immediately lock editor and buttons
+      editorEl.readOnly = true;
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (btnRun) {
+        btnRun.disabled = true;
+        btnRun.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
       overlay.classList.remove('hidden');
       document.getElementById('eval-error').classList.add('hidden');
+
       try {
-        SkillProofFlow.setSolutionCode(editorEl.value);
+        SkillProofFlow.setSolutionCode(solutionCode);
         const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
-        const assessment = await SkillProofApi.submitSolution(assessmentId, {
-          solution: editorEl.value,
-          timeElapsedSeconds: Math.max(0, Math.round((Date.now() - startedAt) / 1000)),
+        const timeElapsed = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+
+        const result = await SkillProofApi.submitSolution(assessmentId, {
+          solution: solutionCode,
+          timeElapsedSeconds: timeElapsed,
         });
-        progressBar.style.width = '100%';
-        SkillProofFlow.setAssessment(assessment);
-        window.location.href = 'evaluation.html';
+
+        lockSubmissionState();
+        if (progressBar) progressBar.style.width = '100%';
+
+        // Navigate to evaluation after short delay to view final report
+        setTimeout(() => {
+          window.location.href = `evaluation.html?id=${encodeURIComponent(assessmentId)}`;
+        }, 800);
       } catch (error) {
         overlay.classList.add('hidden');
-        showSubmissionError(error?.message || String(error));
+        if (error?.status === 409 || error?.message?.includes('already been submitted') || error?.message?.includes('409')) {
+          lockSubmissionState();
+          showSubmissionError("This assessment has already been submitted and cannot be submitted again. One-shot verification is final.", true);
+        } else {
+          // Re-enable if temporary infrastructure error
+          editorEl.readOnly = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          if (btnRun) {
+            btnRun.disabled = false;
+            btnRun.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          showSubmissionError(error?.message || String(error));
+        }
       }
-    }
-
-    function showSubmissionError(message) {
-      const errorEl = document.getElementById('eval-error');
-      errorEl.textContent = `Error: ${message}`;
-      errorEl.classList.remove('hidden');
-    }
-
-    function cancelSubmission() {
-      if (evalInterval) clearInterval(evalInterval);
-      document.getElementById('eval-overlay').classList.add('hidden');
-    }
-
-    function runLocalTests() {
-      const btn = document.getElementById('btn-run');
-      const original = btn.innerHTML;
-      btn.innerHTML = '<span class="animate-spin text-xs">⟳</span> Testing sandbox...';
-      setTimeout(() => {
-        btn.innerHTML = original;
-        const statusText = document.getElementById('test-status-text');
-        statusText.textContent = '3 / 3 Passing (All hermetic constraints met)';
-      }, 650);
     }
 
     function resetTemplate() {
-      if (activeChallenge && activeChallenge.starterCode) {
-        document.getElementById('code-input').value = activeChallenge.starterCode;
-      } else {
-        const defaultCode = `from typing import List, Dict, Any\nfrom collections import defaultdict\n\ndef aggregate_payload_stream(events: List[Dict[str, Any]]) -> Dict[str, Any]:\n    valid_buckets = defaultdict(list)\n    malformed_count = 0\n    for record in events:\n        if not isinstance(record, dict) or "timestamp" not in record or "payload" not in record:\n            malformed_count += 1\n            continue\n        ts = record["timestamp"]\n        bucket_key = str(ts - (ts % 60))\n        valid_buckets[bucket_key].append(record)\n    return {"status": "success", "partitions": dict(valid_buckets), "malformed_dropped": malformed_count}\n`;
-        document.getElementById('code-input').value = defaultCode;
+      if (isSubmitted) return;
+      if (activeChallenge && (activeChallenge.starter_code || activeChallenge.starterCode)) {
+        document.getElementById('code-input').value = activeChallenge.starter_code || activeChallenge.starterCode;
       }
     }
 
     function toggleShortcuts() {
-      alert("Shortcuts:\n• ⌘+Enter: Run Local Tests\n• ⌘+S: Save Draft\n• ⌘+Shift+Enter: Submit Solution");
+      alert("Shortcuts:\n• ⌘+S: Save Draft\n• ⌘+Enter: Submit Solution");
     }
 
     // Countdown Timer Simulation
-    let minutes = 18;
-    let seconds = 42;
+    let minutes = 20;
+    let seconds = 0;
     setInterval(() => {
       if (seconds > 0) {
         seconds--;
@@ -610,4 +844,5 @@ def aggregate_payload_stream(events: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
     }, 1000);
     sessionStorage.setItem('skillproof_started_at', sessionStorage.getItem('skillproof_started_at') || Date.now());
   </script>
-</body></html>
+</div>
+</body></html>
