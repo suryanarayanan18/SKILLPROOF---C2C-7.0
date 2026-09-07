@@ -208,6 +208,8 @@ class CalibrationStatusResponse(BaseModel):
     observation_count: int
     guardrails: Dict[str, Any]
     available_versions: List[Dict[str, Any]]
+    previous_model_version: Optional[str] = None
+    latest_retrain_result: Optional[Dict[str, Any]] = None
 
 
 class RetrainResponse(BaseModel):

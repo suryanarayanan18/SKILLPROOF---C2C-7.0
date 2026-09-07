@@ -37,6 +37,7 @@
 
 <!-- TINYML CONTINUOUS CALIBRATION ENGINE (The Learning Brain) -->
 <section class="rounded-xl bg-surface-container-low border border-[rgba(255,255,255,0.08)] p-space-lg shadow-xl flex flex-col gap-space-md">
+  <!-- Top Header & Retrain Action -->
   <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md pb-space-sm border-b border-surface-container-high">
     <div class="flex items-center gap-space-sm">
       <div class="w-10 h-10 rounded-lg bg-secondary-container/40 flex items-center justify-center text-secondary shrink-0">
@@ -44,44 +45,197 @@
       </div>
       <div class="flex flex-col">
         <div class="flex items-center gap-2">
-          <h2 class="font-title-md text-title-md text-on-surface">TinyML Calibration Engine & Frozen Benchmark Gate</h2>
+          <h2 class="font-title-md text-title-md text-on-surface">TinyML Calibration Engine &amp; Frozen Benchmark Gate</h2>
           <span id="calib-version-badge" class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-code-sm text-code-sm font-bold">Model v1.0 Active</span>
         </div>
-        <p class="font-body-sm text-body-sm text-on-surface-variant">
-          "The candidate gets one attempt. The platform learns from the population." Validated results continuously refine platform calibration without runtime LLMs.
+        <div class="text-primary font-headline-sm text-[16px] tracking-tight mt-0.5">
+          "The candidate gets one shot. The platform gets smarter."
+        </div>
+        <p class="font-body-sm text-[12px] text-on-surface-variant">
+          Deterministic code metrics and objective test executions calibrate scoring weights continuously. Zero runtime LLMs.
         </p>
       </div>
     </div>
     <div class="flex items-center gap-space-sm">
-      <button id="btn-retrain" type="button" class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-secondary text-on-secondary font-title-md text-title-md font-semibold hover:opacity-95 active:scale-95 transition-all shadow-md">
+      <button id="btn-retrain" type="button" class="inline-flex items-center gap-space-xs px-space-lg py-2.5 rounded-lg bg-secondary text-on-secondary font-title-md text-title-md font-semibold hover:opacity-95 active:scale-95 transition-all shadow-md cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">sync</span>
-        <span>Trigger TinyML Retrain (v1.1)</span>
+        <span id="btn-retrain-text">Retrain Calibration</span>
       </button>
     </div>
   </div>
 
+  <!-- THE LEARNING LOOP STORY (6-Step Lifecycle) -->
+  <div class="flex flex-col gap-space-xs pt-1">
+    <div class="flex items-center justify-between">
+      <span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Continuous Calibration Lifecycle</span>
+      <span class="font-code-sm text-[11px] text-secondary font-medium">Deterministic Scikit-Learn Pipeline · Manual Retrain Only</span>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 pt-1">
+      <!-- Step 1: Cold Start -->
+      <div id="flow-step-1" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 1</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">ac_unit</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">COLD START</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant">Seeded calibration <span class="font-code-sm text-secondary font-bold">v1.0</span></span>
+        <div class="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-on-surface-variant text-[12px]">→</div>
+      </div>
+
+      <!-- Step 2: Observations -->
+      <div id="flow-step-2" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 2</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">fact_check</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">CANDIDATE DATA</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant">Validated observations (<span id="flow-obs-count" class="font-code-sm font-bold text-on-surface">--</span>)</span>
+        <div class="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-on-surface-variant text-[12px]">→</div>
+      </div>
+
+      <!-- Step 3: Retraining -->
+      <div id="flow-step-3" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 3</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">tune</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">TINYML RETRAINING</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant">StandardScaler + Ridge fit</span>
+        <div class="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-on-surface-variant text-[12px]">→</div>
+      </div>
+
+      <!-- Step 4: Frozen Benchmark Check -->
+      <div id="flow-step-4" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 4</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">lock</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">FROZEN BENCHMARK</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant">Immutable dataset check</span>
+        <div class="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-on-surface-variant text-[12px]">→</div>
+      </div>
+
+      <!-- Step 5: vNext Activation -->
+      <div id="flow-step-5" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 5</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">verified</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">CALIBRATION vNEXT</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant"><span id="flow-vnext-label">Calibration v1.1</span></span>
+        <div class="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-on-surface-variant text-[12px]">→</div>
+      </div>
+
+      <!-- Step 6: Future Assessments -->
+      <div id="flow-step-6" class="p-2.5 rounded-lg bg-surface-container flex flex-col gap-1 border border-surface-container-high relative">
+        <div class="flex items-center justify-between">
+          <span class="font-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">Step 6</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">trending_up</span>
+        </div>
+        <span class="font-title-md text-[13px] text-on-surface font-semibold">FUTURE SESSIONS</span>
+        <span class="font-body-sm text-[11px] text-on-surface-variant">Future assessments use <span id="flow-future-label" class="font-code-sm text-primary font-bold">v1.1</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- REAL BACKEND DATA CARDS -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm pt-space-xs">
-    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
-      <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Calibration Version</span>
-      <span id="calib-active-ver" class="font-code-sm text-code-sm font-bold text-secondary">v1.0 (Cold Start)</span>
-      <span class="font-body-sm text-[11px] text-on-surface-variant">Curated baseline weights</span>
+    <!-- Card 1: Active Model Version & Previous Version -->
+    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col justify-between gap-1 border border-surface-container-high/40">
+      <div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Model Version</span>
+        <div class="flex items-baseline gap-2 mt-0.5">
+          <span id="calib-active-ver" class="font-code-sm text-code-sm font-bold text-secondary text-[18px]">v1.0</span>
+          <span id="calib-mode-tag" class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-code-sm">Cold Start</span>
+        </div>
+      </div>
+      <div class="pt-1 border-t border-surface-container-high/40 flex items-center justify-between font-body-sm text-[11px] text-on-surface-variant">
+        <span>Previous Model:</span>
+        <span id="calib-prev-ver" class="font-code-sm text-on-surface font-medium">None (Cold Start)</span>
+      </div>
     </div>
-    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
-      <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Frozen Benchmark Score</span>
-      <span id="calib-bench-score" class="font-code-sm text-code-sm font-bold text-primary">88.4 / 100</span>
-      <span class="font-body-sm text-[11px] text-on-surface-variant">Immutable dataset (8/8 pass)</span>
+
+    <!-- Card 2: Frozen Benchmark Score -->
+    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col justify-between gap-1 border border-surface-container-high/40">
+      <div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Frozen Benchmark Score</span>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span id="calib-bench-score" class="font-code-sm text-[18px] font-bold text-primary">-- / 100</span>
+        </div>
+      </div>
+      <div class="pt-1 border-t border-surface-container-high/40 flex items-center justify-between font-body-sm text-[11px] text-on-surface-variant">
+        <span>Benchmark Hash:</span>
+        <span class="font-code-sm text-[#6FA879] flex items-center gap-0.5">
+          <span class="material-symbols-outlined text-[12px]">lock</span> Immutable
+        </span>
+      </div>
     </div>
-    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
-      <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Validated Observations</span>
-      <span id="calib-obs-count" class="font-code-sm text-code-sm font-bold text-on-surface">--</span>
-      <span class="font-body-sm text-[11px] text-on-surface-variant">Quality-gated submissions</span>
+
+    <!-- Card 3: Validated Observations -->
+    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col justify-between gap-1 border border-surface-container-high/40">
+      <div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Validated Observations</span>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span id="calib-obs-count" class="font-code-sm text-[18px] font-bold text-on-surface">--</span>
+          <span class="font-body-sm text-[12px] text-on-surface-variant">quality-gated</span>
+        </div>
+      </div>
+      <div class="pt-1 border-t border-surface-container-high/40 flex items-center justify-between font-body-sm text-[11px] text-on-surface-variant">
+        <span>Retrain Threshold:</span>
+        <span id="calib-threshold-indicator" class="font-code-sm text-secondary font-medium">Min 3 Required</span>
+      </div>
     </div>
-    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
-      <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Safety Guardrails</span>
-      <span id="calib-guardrails" class="font-code-sm text-code-sm font-bold text-[#6FA879] flex items-center gap-1">
-        <span class="material-symbols-outlined text-[14px]">shield</span> All 4 Active
+
+    <!-- Card 4: Latest Retraining Result & Status -->
+    <div class="p-space-sm rounded-lg bg-surface-container flex flex-col justify-between gap-1 border border-surface-container-high/40">
+      <div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Latest Retrain Result</span>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span id="calib-result-icon" class="material-symbols-outlined text-[18px] text-secondary">verified</span>
+          <span id="calib-result-status" class="font-code-sm text-[14px] font-bold text-on-surface">Cold Start Active</span>
+        </div>
+      </div>
+      <div class="pt-1 border-t border-surface-container-high/40 flex items-center justify-between font-body-sm text-[11px] text-on-surface-variant">
+        <span>Decision:</span>
+        <span id="calib-decision-badge" class="font-code-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-medium">Cold Start (Ready)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUARDRAILS AUDIT BREAKDOWN -->
+  <div class="p-space-sm rounded-lg bg-surface-container/60 border border-surface-container-high flex flex-col gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+      <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Active Safety Guardrails</span>
+      <span id="calib-guardrails-summary" class="font-code-sm text-[11px] text-[#6FA879] flex items-center gap-1">
+        <span class="material-symbols-outlined text-[13px]">shield</span> All 4 Guardrails Enforced
       </span>
-      <span class="font-body-sm text-[11px] text-on-surface-variant">Min count · Capped drift · Benchmark gate</span>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[12px] font-code-sm">
+      <div class="flex items-center gap-1.5 text-on-surface-variant">
+        <span id="g-check-obs" class="material-symbols-outlined text-[16px] text-[#6FA879]">check_circle</span>
+        <span>Min Observations: &ge; 3</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-on-surface-variant">
+        <span id="g-check-bench" class="material-symbols-outlined text-[16px] text-[#6FA879]">check_circle</span>
+        <span>Frozen Benchmark: Immutable</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-on-surface-variant">
+        <span id="g-check-drift" class="material-symbols-outlined text-[16px] text-[#6FA879]">check_circle</span>
+        <span>Max Drift: &le; 15.0 pts</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-on-surface-variant">
+        <span id="g-check-antidom" class="material-symbols-outlined text-[16px] text-[#6FA879]">check_circle</span>
+        <span>Anti-Domination: &le; 2 obs/cand</span>
+      </div>
+    </div>
+
+    <div class="text-[11px] font-body-sm text-on-surface-variant/80 border-t border-surface-container-high/50 pt-1.5 flex items-start gap-1.5">
+      <span class="material-symbols-outlined text-[14px] text-primary shrink-0 mt-0.5">info</span>
+      <span>
+        <strong>Deterministic Calibration Notice:</strong> Calibration weights standardize code quality and execution telemetry across the cohort. The model does not predict human intelligence independently of objective code execution evidence, and retraining is strictly user-triggered (never automatic after every candidate).
+      </span>
     </div>
   </div>
 
@@ -651,24 +805,109 @@
     try {
       const data = await SkillProofApi.getCalibrationStatus();
       if (!data) return;
-      
+
+      // 1. Active Model Version Badge & Card
       const badge = document.getElementById('calib-version-badge');
       if (badge) badge.textContent = `Model ${data.active_model_version} Active`;
 
       const activeVer = document.getElementById('calib-active-ver');
-      if (activeVer) activeVer.textContent = `${data.active_model_version} (${data.active_model_version === 'v1.0' ? 'Cold Start' : 'Population Calibrated'})`;
+      if (activeVer) activeVer.textContent = data.active_model_version;
 
-      const benchScore = document.getElementById('calib-bench-score');
-      if (benchScore) benchScore.textContent = `${data.benchmark_score} / 100`;
-
-      const obsCount = document.getElementById('calib-obs-count');
-      if (obsCount) obsCount.textContent = `${data.observation_count} verified`;
-
-      const guardrailsEl = document.getElementById('calib-guardrails');
-      if (guardrailsEl && data.guardrails) {
-        const activeCount = Object.values(data.guardrails).filter(Boolean).length;
-        guardrailsEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">shield</span> ${activeCount} of 4 Active`;
+      const modeTag = document.getElementById('calib-mode-tag');
+      if (modeTag) {
+        const isColdStart = data.active_model_version === 'v1.0';
+        modeTag.textContent = isColdStart ? 'Cold Start' : 'Calibrated vNext';
+        modeTag.className = isColdStart 
+          ? 'text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-code-sm'
+          : 'text-[11px] px-1.5 py-0.5 rounded bg-primary-container text-on-primary-container font-code-sm font-bold';
       }
+
+      // 2. Previous Model Version
+      const prevVer = document.getElementById('calib-prev-ver');
+      if (prevVer) {
+        prevVer.textContent = data.previous_model_version ? `${data.previous_model_version} (Archived)` : 'None (Cold Start)';
+      }
+
+      // 3. Frozen Benchmark Score
+      const benchScore = document.getElementById('calib-bench-score');
+      if (benchScore) {
+        const scoreVal = typeof data.benchmark_score === 'number' ? data.benchmark_score.toFixed(2) : data.benchmark_score;
+        benchScore.textContent = `${scoreVal} / 100`;
+      }
+
+      // 4. Validated Observations Count
+      const obsCount = document.getElementById('calib-obs-count');
+      if (obsCount) obsCount.textContent = `${data.observation_count}`;
+
+      const flowObs = document.getElementById('flow-obs-count');
+      if (flowObs) flowObs.textContent = `${data.observation_count}`;
+
+      const thresholdInd = document.getElementById('calib-threshold-indicator');
+      const minObs = data.guardrails?.min_observations_required || 3;
+      if (thresholdInd) {
+        if (data.observation_count >= minObs) {
+          thresholdInd.textContent = `${data.observation_count}/${minObs} Ready to Retrain`;
+          thresholdInd.className = 'font-code-sm text-[#6FA879] font-medium';
+        } else {
+          thresholdInd.textContent = `${data.observation_count}/${minObs} Need ${minObs - data.observation_count} more`;
+          thresholdInd.className = 'font-code-sm text-secondary font-medium';
+        }
+      }
+
+      // 5. Flow Stepper Version Labels
+      const flowVnext = document.getElementById('flow-vnext-label');
+      if (flowVnext) {
+        const nextVer = data.active_model_version === 'v1.0' ? 'Calibration v1.1' : `Calibration ${data.active_model_version}`;
+        flowVnext.textContent = nextVer;
+      }
+      const flowFuture = document.getElementById('flow-future-label');
+      if (flowFuture) {
+        flowFuture.textContent = data.active_model_version;
+      }
+
+      // 6. Latest Retraining Result & Decision
+      const resultStatus = document.getElementById('calib-result-status');
+      const resultIcon = document.getElementById('calib-result-icon');
+      const decisionBadge = document.getElementById('calib-decision-badge');
+
+      if (data.latest_retrain_result) {
+        const lr = data.latest_retrain_result;
+        const isAccepted = lr.success === true || lr.status === 'accepted';
+        if (resultStatus) {
+          resultStatus.textContent = isAccepted 
+            ? `${lr.proposed_version || 'New Model'} Accepted` 
+            : 'Retrain Rejected';
+        }
+        if (resultIcon) {
+          resultIcon.textContent = isAccepted ? 'check_circle' : 'cancel';
+          resultIcon.className = `material-symbols-outlined text-[18px] ${isAccepted ? 'text-[#6FA879]' : 'text-error'}`;
+        }
+        if (decisionBadge) {
+          decisionBadge.textContent = isAccepted ? `Active (${lr.proposed_version})` : 'Rejected by Guardrail';
+          decisionBadge.className = `font-code-sm text-[11px] px-1.5 py-0.5 rounded ${isAccepted ? 'bg-[#6FA879]/20 text-[#6FA879]' : 'bg-error/20 text-error'}`;
+        }
+      } else {
+        if (resultStatus) {
+          resultStatus.textContent = data.active_model_version === 'v1.0' ? 'Cold Start Active' : 'Calibrated vNext';
+        }
+        if (resultIcon) {
+          resultIcon.textContent = 'verified';
+          resultIcon.className = 'material-symbols-outlined text-[18px] text-secondary';
+        }
+        if (decisionBadge) {
+          decisionBadge.textContent = data.active_model_version === 'v1.0' ? 'Cold Start (Ready)' : 'Active (Passed)';
+          decisionBadge.className = 'font-code-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-medium';
+        }
+      }
+
+      // 7. Guardrail Status Indicators
+      const gCheckObs = document.getElementById('g-check-obs');
+      if (gCheckObs) {
+        const passObs = data.observation_count >= minObs;
+        gCheckObs.textContent = passObs ? 'check_circle' : 'schedule';
+        gCheckObs.className = `material-symbols-outlined text-[16px] ${passObs ? 'text-[#6FA879]' : 'text-secondary'}`;
+      }
+
     } catch (e) {
       console.error('Failed to load calibration status', e);
     }
@@ -689,13 +928,13 @@
 
         if (result.success) {
           feedback.className = 'p-space-sm rounded-lg bg-[#6FA879]/20 text-[#6FA879] border border-[#6FA879]/30 text-body-sm font-code-sm';
-          feedback.innerHTML = `<strong>SUCCESS:</strong> Model ${result.proposed_version} passed frozen benchmark (${result.benchmark_score}/100, prev: ${result.previous_benchmark_score}/100) and safety guardrails. Activated!`;
+          feedback.innerHTML = `<strong>RETRAINING ACCEPTED:</strong> Model <strong>${result.proposed_version}</strong> validated on frozen benchmark (${result.benchmark_score}/100 vs baseline ${result.previous_benchmark_score}/100) and passed all safety guardrails. Activated for future assessments!`;
           retrainBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check</span><span>Model ${result.proposed_version} Active</span>`;
-          retrainBtn.classList.remove('bg-secondary');
+          retrainBtn.classList.remove('bg-secondary', 'text-on-secondary');
           retrainBtn.classList.add('bg-[#6FA879]', 'text-black');
         } else {
           feedback.className = 'p-space-sm rounded-lg bg-error/20 text-error border border-error/30 text-body-sm font-code-sm';
-          feedback.innerHTML = `<strong>GUARDRAIL ALERT:</strong> ${result.message}`;
+          feedback.innerHTML = `<strong>GUARDRAIL REJECTION:</strong> ${result.message || 'Model did not satisfy safety thresholds. Previous model remains active.'}`;
           retrainBtn.innerHTML = orig;
           retrainBtn.disabled = false;
         }
