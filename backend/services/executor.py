@@ -1,7 +1,7 @@
 """Subprocess execution sandbox for candidate Python solutions.
 
-Executes user code in an isolated subprocess with a strict timeout and
-resource monitoring.
+Executes user code in an isolated subprocess with strict timeouts,
+POSIX resource limits (RLIMIT_CPU, RLIMIT_AS), and safe Windows-compatible fallbacks.
 """
 
 from __future__ import annotations
@@ -14,11 +14,31 @@ import tempfile
 import time
 from typing import Any, Dict, List, Optional
 
-
-HARNESS_TEMPLATE = """
+HARNESS_TEMPLATE = '''
 import sys
 import json
 import time
+
+# --- Resource Limits & Safe Windows Fallback ---
+_memory_mb = 12.5
+_memory_status = "estimated_windows_fallback"
+
+try:
+    import resource
+    # RLIMIT_CPU (hard CPU seconds limit per process)
+    try:
+        resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
+    except Exception:
+        pass
+    # RLIMIT_AS (256 MB address space limit)
+    try:
+        as_limit = 256 * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (as_limit, as_limit))
+    except Exception:
+        pass
+    _memory_status = "posix_resource_active"
+except (ImportError, AttributeError, ValueError, OSError):
+    _memory_status = "estimated_windows_fallback"
 
 # --- Candidate Solution Code ---
 {candidate_code}
@@ -73,10 +93,28 @@ for idx, test in enumerate(tests):
             "error": f"{{type(e).__name__}}: {{str(e)}}",
         }})
 
+# Peak resident memory measurement where supported
+try:
+    import resource
+    ru = resource.getrusage(resource.RUSAGE_SELF)
+    if sys.platform == "darwin":
+        _memory_mb = round(ru.ru_maxrss / (1024.0 * 1024.0), 2)
+    else:
+        _memory_mb = round(ru.ru_maxrss / 1024.0, 2)
+    _memory_status = "measured_posix"
+except Exception:
+    pass
+
+output_payload = {{
+    "test_results": results,
+    "memory_mb": _memory_mb,
+    "memory_status": _memory_status,
+}}
+
 print("__SKILLPROOF_OUTPUT_START__")
-print(json.dumps(results))
+print(json.dumps(output_payload))
 print("__SKILLPROOF_OUTPUT_END__")
-"""
+'''
 
 
 def execute_solution_tests(
@@ -86,7 +124,9 @@ def execute_solution_tests(
 ) -> Dict[str, Any]:
     """
     Runs the candidate solution against the test suite in a sandboxed subprocess.
-    Returns test run details, total runtime, memory estimation, and errors.
+    Enforces timeout and POSIX resource limits (RLIMIT_CPU, RLIMIT_AS) with safe Windows fallback.
+    Returns structured metrics:
+      tests_passed, tests_total, runtime, memory, memory_status, error, test_results.
     """
     tests_json = json.dumps(tests)
     script_content = HARNESS_TEMPLATE.format(
@@ -98,6 +138,27 @@ def execute_solution_tests(
         temp_file.write(script_content)
         temp_file_path = temp_file.name
 
+    # Prepare POSIX preexec limits function if supported
+    preexec_fn = None
+    if sys.platform != "win32":
+        try:
+            import resource
+
+            def _set_posix_limits() -> None:
+                try:
+                    # RLIMIT_CPU: timeout + 1 sec hard cutoff
+                    cpu_limit = int(timeout_seconds) + 1
+                    resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit, cpu_limit))
+                    # RLIMIT_AS: 256 MB max virtual memory
+                    as_limit = 256 * 1024 * 1024
+                    resource.setrlimit(resource.RLIMIT_AS, (as_limit, as_limit))
+                except Exception:
+                    pass
+
+            preexec_fn = _set_posix_limits
+        except ImportError:
+            preexec_fn = None
+
     start_time = time.perf_counter()
     try:
         proc = subprocess.run(
@@ -105,6 +166,7 @@ def execute_solution_tests(
             capture_output=True,
             text=True,
             timeout=timeout_seconds,
+            preexec_fn=preexec_fn,
         )
         wall_time = time.perf_counter() - start_time
         stdout = proc.stdout
@@ -115,22 +177,29 @@ def execute_solution_tests(
             start_marker = "__SKILLPROOF_OUTPUT_START__\n"
             end_marker = "\n__SKILLPROOF_OUTPUT_END__"
             json_str = stdout.split(start_marker)[1].split(end_marker)[0]
-            test_results = json.loads(json_str)
-            passed_count = sum(1 for t in test_results if t["passed"])
+            payload = json.loads(json_str)
+
+            test_results = payload.get("test_results", [])
+            memory_mb = payload.get("memory_mb", 12.5)
+            memory_status = payload.get("memory_status", "estimated_windows_fallback" if sys.platform == "win32" else "measured_posix")
+            passed_count = sum(1 for t in test_results if t.get("passed"))
+
             return {
-                "success": True,
+                "success": exit_code == 0,
                 "exit_code": exit_code,
                 "wall_time": round(wall_time, 4),
+                "runtime": round(wall_time, 4),
                 "tests_passed": passed_count,
                 "tests_total": len(tests),
                 "test_results": test_results,
+                "memory": memory_mb,
+                "memory_mb": memory_mb,
+                "memory_status": memory_status,
                 "error": None if exit_code == 0 else stderr.strip(),
-                "memory_mb": 12.5, # Baseline Python process footprint
             }
         else:
-            # Script crashed before runner printed results
+            # Script crashed or exited before test runner completed
             error_msg = stderr.strip() or stdout.strip() or "Syntax or runtime error during execution"
-            # Return all tests as failed
             failed_tests = [
                 {
                     "test_index": i,
@@ -145,11 +214,14 @@ def execute_solution_tests(
                 "success": False,
                 "exit_code": exit_code,
                 "wall_time": round(wall_time, 4),
+                "runtime": round(wall_time, 4),
                 "tests_passed": 0,
                 "tests_total": len(tests),
                 "test_results": failed_tests,
-                "error": error_msg,
+                "memory": 10.0,
                 "memory_mb": 10.0,
+                "memory_status": "estimated_windows_fallback" if sys.platform == "win32" else "crash_fallback",
+                "error": error_msg,
             }
 
     except subprocess.TimeoutExpired:
@@ -168,11 +240,14 @@ def execute_solution_tests(
             "success": False,
             "exit_code": -1,
             "wall_time": round(wall_time, 4),
+            "runtime": round(wall_time, 4),
             "tests_passed": 0,
             "tests_total": len(tests),
             "test_results": timeout_tests,
-            "error": f"Execution timed out after {timeout_seconds} seconds",
+            "memory": 16.0,
             "memory_mb": 16.0,
+            "memory_status": "estimated_windows_fallback" if sys.platform == "win32" else "timeout_fallback",
+            "error": f"Execution timed out after {timeout_seconds} seconds",
         }
     except Exception as exc:
         wall_time = time.perf_counter() - start_time
@@ -180,11 +255,14 @@ def execute_solution_tests(
             "success": False,
             "exit_code": -1,
             "wall_time": round(wall_time, 4),
+            "runtime": round(wall_time, 4),
             "tests_passed": 0,
             "tests_total": len(tests),
             "test_results": [],
-            "error": f"Sandbox execution error: {str(exc)}",
+            "memory": 0.0,
             "memory_mb": 0.0,
+            "memory_status": "unsupported",
+            "error": f"Sandbox execution error: {str(exc)}",
         }
     finally:
         try:

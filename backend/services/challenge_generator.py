@@ -318,3 +318,51 @@ def generate_challenge(
         "version": problem_data.get("version", "1.0"),
         "scenario_domain": scenario.get("domain_title", "General"),
     }
+
+
+def get_canonical_fallback_problem(
+    difficulty: str = "intermediate",
+    seed_problem_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Returns a deterministic, validated canonical problem directly from the seed corpus.
+    Used as a safety fallback if dynamic variation generation or validation fails.
+    """
+    all_problems = load_seed_problems()
+    if not all_problems:
+        raise RuntimeError("No seed problems available in backend/data/problems/")
+
+    matched = [p for p in all_problems if p.get("difficulty", "").lower() == difficulty.lower()]
+    if not matched:
+        matched = all_problems
+
+    if seed_problem_id:
+        chosen = next((p for p in all_problems if p["id"] == seed_problem_id), None)
+        if not chosen:
+            chosen = matched[0]
+    else:
+        chosen = matched[0]
+
+    problem_data = copy.deepcopy(chosen)
+    seed_id = problem_data["id"]
+    instance_id = f"SP-{seed_id[:4].upper()}-{uuid4().hex[:8]}"
+
+    # Use fixed tests directly to guarantee 100% test pass against reference solution
+    tests = list(problem_data.get("fixed_tests", problem_data.get("tests", [])))
+
+    return {
+        "id": instance_id,
+        "seed_problem_id": seed_id,
+        "title": problem_data.get("title", f"{seed_id.replace('_', ' ').title()} Challenge"),
+        "description": problem_data.get("description", "Solve the algorithmic challenge."),
+        "difficulty": problem_data.get("difficulty", difficulty),
+        "concepts": problem_data.get("concepts", []),
+        "algorithm_family": problem_data.get("algorithm_family", "General"),
+        "constraints": problem_data.get("constraints", []),
+        "reference_solution": problem_data["reference_solution"],
+        "starter_code": problem_data.get("starter_code", "def solve(*args):\n    pass\n"),
+        "tests": tests,
+        "version": problem_data.get("version", "1.0"),
+        "scenario_domain": "Canonical Benchmark",
+    }
+

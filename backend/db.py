@@ -13,7 +13,7 @@ DB_PATH = Path(__file__).resolve().parent / "data" / "db.sqlite3"
 
 def get_db_connection() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(DB_PATH), timeout=30.0, isolation_level=None)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -27,6 +27,7 @@ def init_db() -> None:
         """
         CREATE TABLE IF NOT EXISTS problems (
             id TEXT PRIMARY KEY,
+            seed_problem_id TEXT NOT NULL DEFAULT '',
             title TEXT NOT NULL,
             description TEXT NOT NULL,
             difficulty TEXT NOT NULL,
@@ -88,38 +89,54 @@ def init_db() -> None:
         );
         """
     )
-    conn.commit()
+
+    # Ensure seed_problem_id column exists if table was pre-existing
+    cursor.execute("PRAGMA table_info(problems)")
+    existing_cols = [row["name"] for row in cursor.fetchall()]
+    if "seed_problem_id" not in existing_cols:
+        cursor.execute("ALTER TABLE problems ADD COLUMN seed_problem_id TEXT NOT NULL DEFAULT ''")
+
     conn.close()
 
 
 def save_problem(problem: Dict[str, Any]) -> None:
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO problems (
-            id, title, description, difficulty, concepts,
-            algorithm_family, constraints, reference_solution,
-            tests, starter_code, version, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            problem["id"],
-            problem["title"],
-            problem["description"],
-            problem["difficulty"],
-            json.dumps(problem.get("concepts", [])),
-            problem.get("algorithm_family", "General"),
-            json.dumps(problem.get("constraints", [])),
-            problem["reference_solution"],
-            json.dumps(problem.get("tests", [])),
-            problem.get("starter_code", ""),
-            problem.get("version", "1.0"),
-            datetime.now(timezone.utc).isoformat(),
-        ),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT OR REPLACE INTO problems (
+                id, seed_problem_id, title, description, difficulty, concepts,
+                algorithm_family, constraints, reference_solution,
+                tests, starter_code, version, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                problem["id"],
+                problem.get("seed_problem_id", problem["id"]),
+                problem["title"],
+                problem["description"],
+                problem["difficulty"],
+                json.dumps(problem.get("concepts", [])),
+                problem.get("algorithm_family", "General"),
+                json.dumps(problem.get("constraints", [])),
+                problem["reference_solution"],
+                json.dumps(problem.get("tests", [])),
+                problem.get("starter_code", ""),
+                problem.get("version", "1.0"),
+                datetime.now(timezone.utc).isoformat(),
+            ),
+        )
+        conn.execute("COMMIT")
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
 
 
 def get_problem(problem_id: str) -> Optional[Dict[str, Any]]:
@@ -144,19 +161,29 @@ def create_assessment(
     calibration_version: str = "v1.0",
 ) -> Dict[str, Any]:
     conn = get_db_connection()
-    cursor = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
-    cursor.execute(
-        """
-        INSERT INTO assessments (
-            id, candidate_id, problem_id, calibration_version,
-            started_at, submitted_at, attempt_number
-        ) VALUES (?, ?, ?, ?, ?, NULL, 1)
-        """,
-        (assessment_id, candidate_id, problem_id, calibration_version, now_iso),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO assessments (
+                id, candidate_id, problem_id, calibration_version,
+                started_at, submitted_at, attempt_number
+            ) VALUES (?, ?, ?, ?, ?, NULL, 1)
+            """,
+            (assessment_id, candidate_id, problem_id, calibration_version, now_iso),
+        )
+        conn.execute("COMMIT")
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
+
     return {
         "id": assessment_id,
         "candidate_id": candidate_id,
@@ -179,56 +206,80 @@ def get_assessment(assessment_id: str) -> Optional[Dict[str, Any]]:
 
 def mark_assessment_submitted(assessment_id: str) -> bool:
     """
-    Enforce one-shot submission.
-    Returns True if successfully marked, False if already submitted.
+    Enforce one-shot submission atomically at the database level.
+    Returns True if successfully marked, False if already submitted or not found.
+    BEGIN IMMEDIATE guarantees atomic race-free check-and-set across threads and processes.
     """
     conn = get_db_connection()
-    cursor = conn.cursor()
-    now_iso = datetime.now(timezone.utc).isoformat()
-    cursor.execute(
-        """
-        UPDATE assessments
-        SET submitted_at = ?
-        WHERE id = ? AND submitted_at IS NULL
-        """,
-        (now_iso, assessment_id),
-    )
-    updated = cursor.rowcount > 0
-    conn.commit()
-    conn.close()
-    return updated
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        cursor.execute(
+            """
+            UPDATE assessments
+            SET submitted_at = ?
+            WHERE id = ? AND submitted_at IS NULL
+            """,
+            (now_iso, assessment_id),
+        )
+        updated = cursor.rowcount > 0
+        conn.execute("COMMIT")
+        return updated
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        return False
+    finally:
+        conn.close()
 
 
 def save_result(result: Dict[str, Any]) -> None:
+    """
+    Saves assessment result immutably.
+    Strictly uses INSERT INTO results. Never overwrites an existing result.
+    Raises sqlite3.IntegrityError if a result for this assessment_id already exists.
+    """
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO results (
-            assessment_id, tests_passed, tests_total, runtime,
-            memory, time_taken, code_metrics, overall_score,
-            problem_version, calibration_version, evaluation_model_version,
-            breakdown, submission_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            result["assessment_id"],
-            result["tests_passed"],
-            result["tests_total"],
-            result["runtime"],
-            result["memory"],
-            result["time_taken"],
-            json.dumps(result.get("code_metrics", {})),
-            result["overall_score"],
-            result["problem_version"],
-            result["calibration_version"],
-            result["evaluation_model_version"],
-            json.dumps(result.get("breakdown", {})),
-            result.get("submission_code", ""),
-        ),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO results (
+                assessment_id, tests_passed, tests_total, runtime,
+                memory, time_taken, code_metrics, overall_score,
+                problem_version, calibration_version, evaluation_model_version,
+                breakdown, submission_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                result["assessment_id"],
+                result["tests_passed"],
+                result["tests_total"],
+                result["runtime"],
+                result["memory"],
+                result["time_taken"],
+                json.dumps(result.get("code_metrics", {})),
+                result["overall_score"],
+                result["problem_version"],
+                result["calibration_version"],
+                result["evaluation_model_version"],
+                json.dumps(result.get("breakdown", {})),
+                result.get("submission_code", ""),
+            ),
+        )
+        conn.execute("COMMIT")
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
 
 
 def get_result(assessment_id: str) -> Optional[Dict[str, Any]]:
@@ -261,6 +312,22 @@ def get_candidate_results(candidate_id: str) -> List[Dict[str, Any]]:
         (candidate_id,),
     )
     rows = cursor.fetchall()
+
+    # Fallback to latest completed result if candidate_id is 'latest' or 'default'
+    if not rows and candidate_id in ("latest", "default"):
+        cursor.execute(
+            """
+            SELECT r.*, a.candidate_id, a.problem_id, p.title as problem_title,
+                   p.difficulty, p.algorithm_family, a.started_at, a.submitted_at
+            FROM results r
+            JOIN assessments a ON r.assessment_id = a.id
+            JOIN problems p ON a.problem_id = p.id
+            ORDER BY a.started_at DESC
+            LIMIT 1
+            """
+        )
+        rows = cursor.fetchall()
+
     conn.close()
     results = []
     for row in rows:
@@ -279,28 +346,37 @@ def save_calibration_observation(
     validity_flags: Dict[str, Any],
 ) -> int:
     conn = get_db_connection()
-    cursor = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
-    cursor.execute(
-        """
-        INSERT INTO calibration_observations (
-            assessment_id, problem_id, features, result_metrics,
-            validity_flags, timestamp
-        ) VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (
-            assessment_id,
-            problem_id,
-            json.dumps(features),
-            json.dumps(result_metrics),
-            json.dumps(validity_flags),
-            now_iso,
-        ),
-    )
-    obs_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return obs_id
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO calibration_observations (
+                assessment_id, problem_id, features, result_metrics,
+                validity_flags, timestamp
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                assessment_id,
+                problem_id,
+                json.dumps(features),
+                json.dumps(result_metrics),
+                json.dumps(validity_flags),
+                now_iso,
+            ),
+        )
+        obs_id = cursor.lastrowid
+        conn.execute("COMMIT")
+        return obs_id or 0
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
 
 
 def get_calibration_observations(limit: int = 1000) -> List[Dict[str, Any]]:
@@ -329,20 +405,29 @@ def save_model_version(
     status: str = "active",
 ) -> None:
     conn = get_db_connection()
-    cursor = conn.cursor()
-    if status == "active":
-        cursor.execute("UPDATE model_versions SET status = 'archived' WHERE status = 'active'")
     now_iso = datetime.now(timezone.utc).isoformat()
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO model_versions (
-            version, benchmark_score, validation_metrics, created_at, status
-        ) VALUES (?, ?, ?, ?, ?)
-        """,
-        (version, benchmark_score, json.dumps(validation_metrics), now_iso, status),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        if status == "active":
+            cursor.execute("UPDATE model_versions SET status = 'archived' WHERE status = 'active'")
+        cursor.execute(
+            """
+            INSERT OR REPLACE INTO model_versions (
+                version, benchmark_score, validation_metrics, created_at, status
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (version, benchmark_score, json.dumps(validation_metrics), now_iso, status),
+        )
+        conn.execute("COMMIT")
+    except Exception:
+        try:
+            conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
 
 
 def get_active_model_version() -> Optional[Dict[str, Any]]:

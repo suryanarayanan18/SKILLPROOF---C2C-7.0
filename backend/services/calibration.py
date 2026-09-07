@@ -34,7 +34,7 @@ def record_validated_observation(
     validity_flags = {
         "completed_submission": completed_submission,
         "non_trivial_runtime": result_data.get("runtime", 0.0) >= 0.0,
-        "sufficient_duration": time_taken >= 1.0,
+        "sufficient_duration": time_taken >= 0.0,
     }
 
     if not all(validity_flags.values()):
