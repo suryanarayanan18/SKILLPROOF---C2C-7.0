@@ -162,10 +162,10 @@
 <span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-semibold">Adaptive Engine Synthesis</span>
 <span class="px-1.5 py-0.5 rounded bg-surface-container-highest font-code-sm text-[10px] text-on-surface-variant">CALIBRATED RECOMMENDATION</span>
 </div>
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Next Recommended Assessment</h3>
-<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
-            Your highest growth opportunity remains <span class="text-on-surface font-semibold">Algorithmic Efficiency (84%)</span>. An adaptive challenge <span class="text-primary font-semibold font-code-sm text-code-sm">"O(N) Streaming Window Buffer"</span> is prepared and ready for execution.
-          </p>
+<h3 id="history-rec-title" class="font-headline-sm text-headline-sm text-on-surface">Next Recommended Assessment</h3>
+<p id="history-rec-desc" class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+  Establishing verified baseline attestation from empirical execution.
+</p>
 </div>
 </div>
 <div class="flex-shrink-0 flex items-center gap-space-sm">
@@ -198,9 +198,12 @@
       }
     });
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const candId = urlParams.get('candidate_id') || urlParams.get('id') || (window.SkillProofFlow ? SkillProofFlow.getCandidateId() : null);
+
     let records = [];
     try {
-      records = await SkillProofApi.getHistory();
+      records = await SkillProofApi.getHistory(candId);
     } catch (e) {
       console.warn("Could not load history from API:", e);
     }
@@ -239,6 +242,26 @@
         velocityEl.textContent = `${scores[0]}`;
       } else {
         velocityEl.textContent = "--";
+      }
+    }
+
+    // Dynamic Adaptive Insight Recommendation
+    const recTitle = document.getElementById('history-rec-title');
+    const recDesc = document.getElementById('history-rec-desc');
+    if (recTitle && recDesc) {
+      if (completedRecords.length === 0) {
+        recTitle.textContent = "Welcome to SkillProof Attestation";
+        recDesc.innerHTML = `Complete your first one-shot assessment to establish your verified capability baseline and generate your immutable cryptographic ledger.`;
+      } else {
+        const latest = completedRecords[0];
+        const latestScore = Math.round(latest.overall_score || 0);
+        if (latestScore < 70) {
+          recTitle.textContent = "Focus Area: Core Logic & Assertion Correctness";
+          recDesc.innerHTML = `Your recent assessment attained a score of <span class="text-primary font-semibold">${latestScore}/100</span>. An adaptive challenge focusing on edge boundary testing and syntax correctness is recommended.`;
+        } else {
+          recTitle.textContent = "Focus Area: Algorithmic Efficiency & Scale";
+          recDesc.innerHTML = `Your verified score stands at <span class="text-secondary font-semibold">${latestScore}/100</span> (${latest.problem_title || 'Python'}). Recommended next challenge: asymptotic scaling and space-optimized buffers.`;
+        }
       }
     }
 

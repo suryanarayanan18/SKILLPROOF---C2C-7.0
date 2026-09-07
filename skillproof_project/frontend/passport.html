@@ -35,7 +35,7 @@
 </div>
 </header>
 <!-- 2. CENTRAL HERO PASSPORT CARD: Master Hermetic Attestation Board -->
-<section class="relative rounded-2xl bg-surface-container-lowest shadow-[0_24px_54px_-16px_rgba(0,0,0,0.85)] p-space-xl overflow-hidden transition-all duration-300 group">
+<section id="passport-hero-card" class="relative rounded-2xl bg-surface-container-lowest shadow-[0_24px_54px_-16px_rgba(0,0,0,0.85)] p-space-xl overflow-hidden transition-all duration-300 group">
 <!-- Outer radiant hair-thin highlight gradient simulation (1px inset layer without using border) -->
 <div class="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_1px_1px_rgba(255,180,165,0.3),inset_0_0_0_1px_rgba(255,178,185,0.12)]"></div>
 <!-- Ambient card flare interior -->
@@ -192,14 +192,14 @@
 </div>
 </section>
 <!-- 3. LOWER TWO-COLUMN EVIDENCE & TRAJECTORY SUITE -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+<div id="passport-lower-suite" class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
 <!-- LEFT COLUMN: Performance Summary, Progression Spline, Strength Profile (7 cols) -->
 <div class="lg:col-span-7 flex flex-col gap-space-xl">
 <!-- Metric Summary 4-Block Strip -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm">
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Assessments</span>
-<span class="font-headline-md text-headline-md text-on-surface">3</span>
+<span id="passport-stat-count" class="font-headline-md text-headline-md text-on-surface">--</span>
 <span class="font-body-sm text-body-sm text-on-surface-variant">Completed</span>
 </div>
 <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-2xs">
@@ -395,10 +395,18 @@
   // Bind Dynamic Passport Data from SkillProof Backend
   (async function() {
     if (!window.SkillProofApi) return;
-    const candId = window.SkillProofFlow ? SkillProofFlow.getCandidateId() : (localStorage.getItem("skillproof_candidate_id") || "cand-demo");
+    const urlParams = new URLSearchParams(window.location.search);
+    const candId = urlParams.get("candidate_id") || urlParams.get("id") || (window.SkillProofFlow ? SkillProofFlow.getCandidateId() : localStorage.getItem("skillproof_candidate_id"));
+    if (!candId) {
+      const heroCard = document.getElementById('passport-hero-card');
+      const lowerSuite = document.getElementById('passport-lower-suite');
+      if (heroCard) heroCard.style.display = 'none';
+      if (lowerSuite) lowerSuite.style.display = 'none';
+      return;
+    }
     try {
       const passport = await SkillProofApi.getPassport(candId);
-      if (!passport || passport.detail) {
+      if (!passport || passport.detail || passport.status === 404) {
         throw new Error(passport?.detail || "No passport available");
       }
       window.currentPassportId = passport.passport_id;
@@ -483,6 +491,9 @@
       const validAttempts = (Array.isArray(historyRecords) ? historyRecords : [])
         .filter(h => h.submitted_at && h.overall_score !== null)
         .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+      const countStatEl = document.getElementById('passport-stat-count');
+      if (countStatEl) countStatEl.textContent = String(validAttempts.length);
 
       const peakScore = validAttempts.length > 0 
         ? Math.round(Math.max(...validAttempts.map(h => h.overall_score || 0)))
@@ -630,24 +641,30 @@
 
     } catch (error) {
       console.warn('No completed passport available yet for candidate:', candId, error);
-      const mainSection = document.querySelector('section');
-      if (mainSection) {
+      const heroCard = document.getElementById('passport-hero-card');
+      const lowerSuite = document.getElementById('passport-lower-suite');
+      if (heroCard) heroCard.style.display = 'none';
+      if (lowerSuite) lowerSuite.style.display = 'none';
+
+      const mainEl = document.querySelector('main');
+      if (mainEl && !document.getElementById('passport-empty-state')) {
         const emptyState = document.createElement('div');
-        emptyState.className = 'p-6 my-4 rounded-xl bg-[#201F20] border border-[rgba(255,180,165,0.2)] text-center';
+        emptyState.id = 'passport-empty-state';
+        emptyState.className = 'p-8 my-6 rounded-2xl bg-surface-container-low border border-[rgba(255,180,165,0.2)] text-center max-w-2xl mx-auto shadow-2xl';
         emptyState.innerHTML = `
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#353436] text-[#FFB4AB] mb-3">
-            <span class="material-symbols-outlined text-[24px]">verified_user</span>
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-surface-container-high text-secondary mb-4">
+            <span class="material-symbols-outlined text-[32px]">verified_user</span>
           </div>
-          <h2 class="text-lg font-bold text-white mb-1">No Completed Assessment on Record</h2>
-          <p class="text-sm text-[#C8C1C3] max-w-md mx-auto mb-4">
-            Candidate <code class="font-mono text-[#FFB4AB]">${candId}</code> has not submitted any one-shot assessments yet. Complete an assessment to generate your immutable Skill Passport.
+          <h2 class="text-xl font-bold text-on-surface mb-2">No Completed Assessment on Record</h2>
+          <p class="text-sm text-on-surface-variant max-w-md mx-auto mb-6">
+            Candidate <code class="font-mono text-secondary px-1.5 py-0.5 rounded bg-surface-container">${candId}</code> has not submitted any one-shot assessments yet. Complete an assessment to generate your immutable Skill Passport.
           </p>
-          <a href="skill-selection.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary font-semibold text-sm hover:opacity-90 transition-opacity">
+          <a href="skill-selection.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:opacity-90 transition-all shadow-lg">
             <span>Start One-Shot Assessment</span>
-            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </a>
         `;
-        mainSection.prepend(emptyState);
+        mainEl.appendChild(emptyState);
       }
     }
   })();
