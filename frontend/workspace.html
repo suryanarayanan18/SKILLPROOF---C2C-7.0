@@ -353,18 +353,13 @@
       <div class="flex-1 flex overflow-hidden bg-[#0D0C0E] relative custom-scrollbar font-mono text-[13px] leading-relaxed">
         
         <!-- Line Numbers Column -->
-        <div class="w-12 py-4 bg-[#0A0A0B]/80 text-right pr-3 select-none text-[#4A4648] border-r border-white/5 font-mono text-xs flex-shrink-0 flex flex-col space-y-0">
-          <div>01</div><div>02</div><div>03</div><div>04</div><div>05</div><div>06</div><div>07</div><div>08</div><div>09</div><div>10</div>
-          <div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
-          <div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+        <div id="editor-line-numbers" class="w-12 py-4 bg-[#0A0A0B]/80 text-right pr-3 select-none text-[#4A4648] border-r border-white/5 font-mono text-xs flex-shrink-0 flex flex-col space-y-0">
+          <div>01</div>
         </div>
 
         <!-- Editable Code Area -->
         <div class="flex-1 p-4 overflow-y-auto custom-scrollbar relative">
-          <textarea id="code-input" spellcheck="false" class="w-full h-full bg-transparent text-[#F5F3F3] outline-none resize-none font-mono text-[13px] leading-relaxed selection:bg-[#B86A73]/40" style="white-space: pre; tab-size: 4;"># Write your Python solution code here
-def solve(*args, **kwargs):
-    pass
-</textarea>
+          <textarea id="code-input" spellcheck="false" class="w-full h-full bg-transparent text-[#F5F3F3] outline-none resize-none font-mono text-[13px] leading-relaxed selection:bg-[#B86A73]/40" style="white-space: pre; tab-size: 4;" placeholder="Loading starter code..."></textarea>
         </div>
 
       </div>
@@ -505,21 +500,52 @@ def solve(*args, **kwargs):
       }
     }
 
+    // Dynamic line numbers updater
+    function updateLineNumbers() {
+      const editorEl = document.getElementById('code-input');
+      const linesContainer = document.getElementById('editor-line-numbers');
+      if (!editorEl || !linesContainer) return;
+      const linesCount = Math.max(1, (editorEl.value.split('\n').length || 1));
+      let html = '';
+      for (let i = 1; i <= linesCount; i++) {
+        html += `<div>${String(i).padStart(2, '0')}</div>`;
+      }
+      linesContainer.innerHTML = html;
+    }
+
     // Load active challenge into workspace
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const assessmentId = urlParams.get('id') || urlParams.get('assessment_id') || (window.SkillProofFlow ? SkillProofFlow.getAssessmentId() : null);
+      let assessmentId = urlParams.get('id') || urlParams.get('assessment_id');
       try {
         if (assessmentId) {
           activeChallenge = await SkillProofApi.getAssessment(assessmentId);
         } else {
-          // No active assessment, create one with selected skill/difficulty
-          activeChallenge = await SkillProofApi.createAssessment({
-            skill: SkillProofFlow.getSkill(),
-            difficulty: SkillProofFlow.getDifficulty(),
-          });
+          // If no assessmentId in URL, check if stored session exists and is unsubmitted
+          const stored = window.SkillProofFlow ? SkillProofFlow.getStoredAssessment() : null;
+          const storedId = stored?.id || stored?.assessment_id;
+          if (storedId && !stored.submitted_at && !stored.result) {
+            assessmentId = storedId;
+            activeChallenge = await SkillProofApi.getAssessment(assessmentId);
+          } else {
+            // Otherwise create a fresh new assessment
+            activeChallenge = await SkillProofApi.createAssessment({
+              skill: SkillProofFlow.getSkill(),
+              difficulty: SkillProofFlow.getDifficulty(),
+            });
+          }
         }
-        SkillProofFlow.setAssessment(activeChallenge);
+        if (activeChallenge) {
+          SkillProofFlow.setAssessment(activeChallenge);
+          const actualId = activeChallenge.id || activeChallenge.assessment_id;
+          if (actualId) {
+            const currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('id') !== actualId) {
+              currentUrl.searchParams.set('id', actualId);
+              window.history.replaceState({}, '', currentUrl.toString());
+            }
+          }
+        }
       } catch (err) {
         showSubmissionError(err.message || "Failed to connect to backend server. Please ensure backend is running.");
         return;
@@ -594,12 +620,41 @@ def solve(*args, **kwargs):
         hintTextEl.textContent = `Focus area: ${activeChallenge.algorithm_family}. Ensure your code handles edge cases, empty structures, and adheres to expected return types.`;
       }
 
-      // Set starter code or submitted code
+      // Set starter code or submitted code with strict session isolation
       const editorEl = document.getElementById('code-input');
       if (editorEl) {
+        const actualId = activeChallenge.id || activeChallenge.assessment_id || assessmentId;
         const submittedCode = activeChallenge.result?.submission_code;
-        const savedCode = SkillProofFlow.getSolutionCode();
-        editorEl.value = submittedCode || savedCode || activeChallenge.starter_code || activeChallenge.starterCode || editorEl.value;
+        const savedDraft = actualId ? SkillProofFlow.getDraftCode(actualId) : null;
+        const starterCode = activeChallenge.starter_code || activeChallenge.starterCode || "";
+
+        // Strictly isolated:
+        // 1. If this assessment was already submitted, display its final submitted code.
+        // 2. Else if an in-progress draft exists for THIS EXACT assessment, restore it.
+        // 3. Otherwise, initialize strictly with the challenge's starter code.
+        if (submittedCode) {
+          editorEl.value = submittedCode;
+        } else if (savedDraft) {
+          editorEl.value = savedDraft;
+        } else {
+          editorEl.value = starterCode;
+        }
+
+        updateLineNumbers();
+
+        // Listen for input to update line numbers and save draft strictly for this assessment
+        editorEl.addEventListener('input', () => {
+          updateLineNumbers();
+          if (!isSubmitted && actualId) {
+            SkillProofFlow.setDraftCode(actualId, editorEl.value);
+          }
+        });
+        editorEl.addEventListener('scroll', () => {
+          const linesContainer = document.getElementById('editor-line-numbers');
+          if (linesContainer) {
+            linesContainer.scrollTop = editorEl.scrollTop;
+          }
+        });
       }
 
       // Check if this assessment has already been submitted
@@ -631,7 +686,7 @@ def solve(*args, **kwargs):
       const statusDot = document.getElementById('test-status-dot');
       const perfText = document.getElementById('test-perf-text');
       const resultsContainer = document.getElementById('test-results-container');
-      const assessmentId = SkillProofFlow.getAssessmentId();
+      const assessmentId = (activeChallenge && (activeChallenge.id || activeChallenge.assessment_id)) || SkillProofFlow.getAssessmentId();
 
       if (!assessmentId || !editorEl) {
         showSubmissionError('Assessment missing. Please start a challenge first.');
@@ -751,7 +806,7 @@ def solve(*args, **kwargs):
       const editorEl = document.getElementById('code-input');
       const btnSubmit = document.getElementById('btn-submit');
       const btnRun = document.getElementById('btn-run');
-      const assessmentId = SkillProofFlow.getAssessmentId();
+      const assessmentId = (activeChallenge && (activeChallenge.id || activeChallenge.assessment_id)) || SkillProofFlow.getAssessmentId();
 
       if (!assessmentId || !editorEl) {
         window.alert('Assessment ID not found. Please start a challenge first.');
@@ -779,7 +834,7 @@ def solve(*args, **kwargs):
       document.getElementById('eval-error').classList.add('hidden');
 
       try {
-        SkillProofFlow.setSolutionCode(solutionCode);
+        SkillProofFlow.setDraftCode(assessmentId, solutionCode);
         const startedAt = Number(sessionStorage.getItem('skillproof_started_at') || Date.now());
         const timeElapsed = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
 
@@ -787,6 +842,9 @@ def solve(*args, **kwargs):
           solution: solutionCode,
           timeElapsedSeconds: timeElapsed,
         });
+
+        // Clear in-progress draft on success so future visits load immutable submission_code
+        SkillProofFlow.clearDraftCode(assessmentId);
 
         lockSubmissionState();
         if (progressBar) progressBar.style.width = '100%';
@@ -818,8 +876,15 @@ def solve(*args, **kwargs):
 
     function resetTemplate() {
       if (isSubmitted) return;
-      if (activeChallenge && (activeChallenge.starter_code || activeChallenge.starterCode)) {
-        document.getElementById('code-input').value = activeChallenge.starter_code || activeChallenge.starterCode;
+      const starter = activeChallenge?.starter_code || activeChallenge?.starterCode || "";
+      const editorEl = document.getElementById('code-input');
+      if (editorEl) {
+        editorEl.value = starter;
+        updateLineNumbers();
+      }
+      const actualId = activeChallenge?.id || activeChallenge?.assessment_id;
+      if (actualId) {
+        SkillProofFlow.clearDraftCode(actualId);
       }
     }
 

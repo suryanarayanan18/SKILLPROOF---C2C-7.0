@@ -5,6 +5,11 @@
  * Landing -> Skill Selection -> Difficulty Selection -> Setup -> Workspace -> Evaluation -> Passport
  */
 
+// Purge legacy unscoped draft storage to prevent cross-assessment state contamination
+try {
+  localStorage.removeItem("skillproof_solution_code");
+} catch (e) {}
+
 const SkillProofFlow = {
   getCandidateId() {
     let id = localStorage.getItem("skillproof_candidate_id");
@@ -65,20 +70,57 @@ const SkillProofFlow = {
     return this.getStoredAssessment() || {};
   },
 
-  getSolutionCode() {
-    return localStorage.getItem("skillproof_solution_code") || null;
+  // --- Assessment-Scoped Draft Management ---
+  getDraftCode(assessmentId) {
+    if (!assessmentId) return null;
+    return localStorage.getItem(`skillproof_draft_${assessmentId}`) || null;
   },
 
-  setSolutionCode(code) {
-    localStorage.setItem("skillproof_solution_code", code);
+  setDraftCode(assessmentId, code) {
+    if (!assessmentId || code === undefined || code === null) return;
+    localStorage.setItem(`skillproof_draft_${assessmentId}`, code);
   },
 
-  resetSession() {
+  clearDraftCode(assessmentId) {
+    if (!assessmentId) return;
+    localStorage.removeItem(`skillproof_draft_${assessmentId}`);
+  },
+
+  // Legacy compatibility helpers: strictly scoped when assessmentId provided, never cross-contaminates
+  getSolutionCode(assessmentId) {
+    if (assessmentId) {
+      return this.getDraftCode(assessmentId);
+    }
+    return null;
+  },
+
+  setSolutionCode(code, assessmentId) {
+    if (assessmentId) {
+      this.setDraftCode(assessmentId, code);
+    }
+    try {
+      localStorage.removeItem("skillproof_solution_code");
+    } catch (e) {}
+  },
+
+  resetSession(clearDrafts = false) {
     localStorage.removeItem("skillproof_selected_skill");
     localStorage.removeItem("skillproof_selected_difficulty");
     localStorage.removeItem("skillproof_solution_code");
     localStorage.removeItem("skillproof_assessment_id");
     localStorage.removeItem("skillproof_active_assessment");
+    if (clearDrafts) {
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("skillproof_draft_")) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+      } catch (e) {}
+    }
   }
 };
 

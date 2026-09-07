@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -117,6 +118,31 @@ print("__SKILLPROOF_OUTPUT_END__")
 '''
 
 
+def _clean_traceback_line_numbers(error_str: str) -> str:
+    """
+    Normalizes line numbers in tracebacks and syntax errors.
+    Adjusts the harness line offset so error line numbers match candidate code starting at line 1,
+    and replaces temporary file paths with 'solution.py'.
+    """
+    if not error_str:
+        return error_str
+
+    preamble_line_count = HARNESS_TEMPLATE.split("{candidate_code}")[0].count("\n")
+
+    def _replace_line_match(match: re.Match) -> str:
+        prefix = match.group(1)
+        line_num = int(match.group(2))
+        suffix = match.group(3)
+        normalized_line = max(1, line_num - preamble_line_count) if line_num > preamble_line_count else line_num
+        return f'File "solution.py", line {normalized_line}{suffix}'
+
+    # Match File "...", line 123
+    cleaned = re.sub(r'(File\s+"[^"]+",\s+line\s+)(\d+)(.*)', _replace_line_match, error_str)
+    # Also clean any remaining temp file paths
+    cleaned = re.sub(r'File\s+"[^"]+[\\/][^\\/]+\.py"', 'File "solution.py"', cleaned)
+    return cleaned
+
+
 def execute_solution_tests(
     solution_code: str,
     tests: List[Dict[str, Any]],
@@ -195,11 +221,12 @@ def execute_solution_tests(
                 "memory": memory_mb,
                 "memory_mb": memory_mb,
                 "memory_status": memory_status,
-                "error": None if exit_code == 0 else stderr.strip(),
+                "error": None if exit_code == 0 else _clean_traceback_line_numbers(stderr.strip()),
             }
         else:
             # Script crashed or exited before test runner completed
-            error_msg = stderr.strip() or stdout.strip() or "Syntax or runtime error during execution"
+            raw_err = stderr.strip() or stdout.strip() or "Syntax or runtime error during execution"
+            error_msg = _clean_traceback_line_numbers(raw_err)
             failed_tests = [
                 {
                     "test_index": i,
